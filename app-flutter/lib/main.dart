@@ -1,6 +1,17 @@
+import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:conference_radio_flutter/service/audio_player_service.dart';
+import 'package:conference_radio_flutter/service/csv_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:provider/provider.dart';
 
 void main() {
+  AssetsAudioPlayer.setupNotificationsOpenAction((notification) {
+    //custom action
+    return true; //true : handled, does not notify others listeners
+    //false : enable others listeners to handle it
+  });
+
   runApp(const MyApp());
 }
 
@@ -57,7 +68,18 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
-  void _incrementCounter() {
+  void _incrementCounter() async {
+    final stopwatch = Stopwatch()..start();
+
+    // Call the asynchronous function
+    await checkForUpdatesAndApply();
+
+    // Stop the stopwatch
+    stopwatch.stop();
+
+    // Print the elapsed time
+    print('Elapsed time: ${stopwatch.elapsed}');
+
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
@@ -112,6 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+            _counter % 2 == 0 ? TalkPlayer() : Container(),
           ],
         ),
       ),
@@ -121,5 +144,70 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+}
+
+class TalkPlayer extends StatefulWidget {
+  const TalkPlayer({super.key});
+
+  @override
+  State<TalkPlayer> createState() => _TalkPlayerState();
+}
+
+class _TalkPlayerState extends State<TalkPlayer> {
+  AudioPlayerService? audioPlayerService;
+  @override
+  void initState() {
+    AudioPlayerService.init().then((value) {
+      setState(() {
+        audioPlayerService = value;
+      });
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    print("dispose");
+    audioPlayerService?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void reassemble() {
+    print("reassemble");
+    audioPlayerService?.dispose();
+    super.reassemble(); // must call
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final audioPlayer_ = audioPlayerService;
+    if (audioPlayer_ == null) {
+      return const CircularProgressIndicator();
+    }
+    return _TalkPlayer(audioService: audioPlayer_);
+  }
+}
+
+class _TalkPlayer extends HookWidget {
+  final AudioPlayerService audioService;
+  const _TalkPlayer({required this.audioService});
+
+  @override
+  Widget build(BuildContext context) {
+    useListenable(audioService);
+    final isPlaying = audioService.playerState == PlayerState.play;
+    return ElevatedButton.icon(
+        onPressed: () {
+          if (isPlaying) {
+            audioService.play(indexDelta: 1);
+          } else {
+            audioService.play();
+          }
+        },
+        icon: isPlaying ? Icon(Icons.play_circle) : Icon(Icons.pause_circle),
+        label: Text(isPlaying ? "Playing" : "Paused"));
   }
 }
