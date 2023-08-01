@@ -55,6 +55,12 @@ class AudioPlayerService extends ChangeNotifier {
   }
 
   void play({int indexDelta = 0}) {
+    if (indexDelta == 0 && audioPlayer.playerState.value == PlayerState.pause) {
+      print("play");
+      audioPlayer.play();
+      return;
+    }
+
     final possibleNewIndex = indexDelta + index;
 
     if (possibleNewIndex < _playlist.length && possibleNewIndex >= 0) {
@@ -63,10 +69,20 @@ class AudioPlayerService extends ChangeNotifier {
       print("invalid index");
       return;
     }
-
+    final talk = _playlist[index];
     audioPlayer.open(
-      Audio.network(_playlist[index].mp3),
+      Audio.network(
+        talk.mp3,
+        metas: Metas(
+          id: talk.baseUri,
+          title: talk.title,
+          artist: talk.name,
+          album: "${talk.month}/${talk.year}",
+          image: const MetasImage.network('https://www.conferenceradio.app/app_data/notification_icon.png'),
+        ),
+      ),
       showNotification: true,
+      playInBackground: PlayInBackground.enabled,
       notificationSettings: NotificationSettings(
         customNextAction: (player) async {
           if (_playlist.length - index <= 2) {

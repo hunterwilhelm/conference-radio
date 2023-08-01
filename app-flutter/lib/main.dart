@@ -198,16 +198,20 @@ class _TalkPlayer extends HookWidget {
   @override
   Widget build(BuildContext context) {
     useListenable(audioService);
-    final isPlaying = audioService.playerState == PlayerState.play;
-    return ElevatedButton.icon(
-        onPressed: () {
-          if (isPlaying) {
-            audioService.play(indexDelta: 1);
-          } else {
-            audioService.play();
-          }
-        },
-        icon: isPlaying ? Icon(Icons.play_circle) : Icon(Icons.pause_circle),
-        label: Text(isPlaying ? "Playing" : "Paused"));
+    return PlayerBuilder.isPlaying(
+      player: audioService.audioPlayer,
+      builder: (context, isPlaying) {
+        return ElevatedButton.icon(
+            onPressed: () {
+              if (!isPlaying) {
+                audioService.play();
+              } else {
+                audioService.pause();
+              }
+            },
+            icon: isPlaying ? const Icon(Icons.play_circle) : Icon(Icons.pause_circle),
+            label: Text(isPlaying ? "Playing" : "Paused"));
+      },
+    );
   }
 }
