@@ -1,9 +1,10 @@
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:conference_radio_flutter/service/audio_player_service.dart';
 import 'package:conference_radio_flutter/service/csv_service.dart';
+import 'package:conference_radio_flutter/widgets/PositionSeekWidget.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:provider/provider.dart';
 
 void main() {
   AssetsAudioPlayer.setupNotificationsOpenAction((notification) {
@@ -197,21 +198,53 @@ class _TalkPlayer extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    useListenable(audioService);
-    return PlayerBuilder.isPlaying(
-      player: audioService.audioPlayer,
-      builder: (context, isPlaying) {
-        return ElevatedButton.icon(
-            onPressed: () {
-              if (!isPlaying) {
-                audioService.play();
-              } else {
-                audioService.pause();
-              }
-            },
-            icon: isPlaying ? const Icon(Icons.play_circle) : Icon(Icons.pause_circle),
-            label: Text(isPlaying ? "Playing" : "Paused"));
-      },
+    return Column(
+      children: [
+        StreamBuilder<RealtimePlayingInfos>(
+          stream: audioService.audioPlayer.realtimePlayingInfos,
+          builder: (context, snapshot) {
+            return PositionSeekWidget(
+              currentPosition: snapshot.data?.currentPosition ?? Duration.zero,
+              duration: snapshot.data?.duration ?? Duration.zero,
+              seekTo: (to) {
+                audioService.audioPlayer.seek(to);
+              },
+            );
+          },
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: const Icon(FluentIcons.previous_16_regular),
+              onPressed: () {
+                audioService.play(indexDelta: -1);
+              },
+            ),
+            PlayerBuilder.isPlaying(
+              player: audioService.audioPlayer,
+              builder: (context, isPlaying) {
+                return IconButton(
+                  onPressed: () {
+                    if (!isPlaying) {
+                      audioService.play();
+                    } else {
+                      audioService.pause();
+                    }
+                  },
+                  icon: isPlaying ? const Icon(FluentIcons.pause_16_regular) : const Icon(FluentIcons.play_16_regular),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(FluentIcons.next_16_regular),
+              onPressed: () {
+                audioService.play(indexDelta: 1);
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

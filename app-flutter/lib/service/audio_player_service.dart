@@ -54,20 +54,17 @@ class AudioPlayerService extends ChangeNotifier {
     // }
   }
 
-  void play({int indexDelta = 0}) {
+  void play({int indexDelta = 0}) async {
     if (indexDelta == 0 && audioPlayer.playerState.value == PlayerState.pause) {
       print("play");
       audioPlayer.play();
       return;
     }
 
-    final possibleNewIndex = indexDelta + index;
-
-    if (possibleNewIndex < _playlist.length && possibleNewIndex >= 0) {
-      index += indexDelta;
-    } else {
-      print("invalid index");
-      return;
+    index += indexDelta;
+    if (index >= _playlist.length) {
+      index = _playlist.length;
+      await _loadNextSong();
     }
     final talk = _playlist[index];
     audioPlayer.open(
@@ -85,9 +82,6 @@ class AudioPlayerService extends ChangeNotifier {
       playInBackground: PlayInBackground.enabled,
       notificationSettings: NotificationSettings(
         customNextAction: (player) async {
-          if (_playlist.length - index <= 2) {
-            _loadNextSong();
-          }
           play(indexDelta: 1);
         },
         customPrevAction: (player) async {
