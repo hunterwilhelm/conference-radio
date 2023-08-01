@@ -7,7 +7,15 @@ import 'package:flutter/material.dart';
 class AudioPlayerService extends ChangeNotifier {
   final AssetsAudioPlayer audioPlayer = AssetsAudioPlayer.newPlayer();
   final List<Talk> _playlist = [];
-  int index = 0;
+  int _index = 0;
+  int get index => _index;
+  set index(int value) {
+    notifyListeners();
+    _index = value;
+  }
+
+  Talk? get currentTalk => index < _playlist.length ? _playlist[index] : null;
+
   final List<StreamSubscription> _subscriptions = [];
   final TalksDbService talksDbService;
   late PlayerState playerState;

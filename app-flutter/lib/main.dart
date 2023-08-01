@@ -1,7 +1,7 @@
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:conference_radio_flutter/service/audio_player_service.dart';
 import 'package:conference_radio_flutter/service/csv_service.dart';
-import 'package:conference_radio_flutter/widgets/PositionSeekWidget.dart';
+import 'package:conference_radio_flutter/widgets/position_seek_widget.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -128,13 +128,6 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
             _counter % 2 == 0 ? TalkPlayer() : Container(),
           ],
         ),
@@ -200,10 +193,75 @@ class _TalkPlayer extends HookWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        ListenableBuilder(
+          listenable: audioService,
+          builder: (context, child) {
+            final talk = audioService.currentTalk;
+            var textStyle = TextStyle(
+              color: Colors.black,
+              fontSize: 25.67,
+              fontFamily: 'REM',
+              fontWeight: FontWeight.w600,
+              letterSpacing: 2.05,
+            );
+            return Container(
+              width: 274,
+              height: 274,
+              clipBehavior: Clip.antiAlias,
+              decoration: ShapeDecoration(
+                color: Colors.white.withOpacity(0.7300000190734863),
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(width: 1, color: Color(0x4C818181)),
+                  borderRadius: BorderRadius.circular(46),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    '${talk?.month == 4 ? "April" : "October"}\n${talk?.year}',
+                    textAlign: TextAlign.center,
+                    style: textStyle,
+                  ),
+                  Container(
+                    width: 124,
+                    decoration: const ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          width: 0.50,
+                          strokeAlign: BorderSide.strokeAlignCenter,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${talk?.type}',
+                    textAlign: TextAlign.center,
+                    style: textStyle,
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        ListenableBuilder(
+          listenable: audioService,
+          builder: (context, child) {
+            final talk = audioService.currentTalk;
+            return Column(
+              children: [
+                Text(talk?.title ?? ""),
+                Text(talk?.name ?? ""),
+              ],
+            );
+          },
+        ),
         StreamBuilder<RealtimePlayingInfos>(
           stream: audioService.audioPlayer.realtimePlayingInfos,
           builder: (context, snapshot) {
             return PositionSeekWidget(
+              // currentPosition: snapshot.data?.currentPosition ?? Duration.zero,
+              // duration: snapshot.data?.duration ?? Duration.zero,
               currentPosition: snapshot.data?.currentPosition ?? Duration.zero,
               duration: snapshot.data?.duration ?? Duration.zero,
               seekTo: (to) {
@@ -215,6 +273,10 @@ class _TalkPlayer extends HookWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            IconButton(
+              icon: const Icon(FluentIcons.arrow_shuffle_48_regular),
+              onPressed: () {},
+            ),
             IconButton(
               icon: const Icon(FluentIcons.previous_16_regular),
               onPressed: () {
@@ -241,6 +303,13 @@ class _TalkPlayer extends HookWidget {
               onPressed: () {
                 audioService.play(indexDelta: 1);
               },
+            ),
+            IconButton(
+              icon: Transform.translate(
+                offset: Offset(0, -2),
+                child: const Icon(FluentIcons.timer_24_regular),
+              ),
+              onPressed: () {},
             ),
           ],
         ),
