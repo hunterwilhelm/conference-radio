@@ -3,10 +3,12 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:marquee/marquee.dart';
 
 import '../constants/style_list.dart';
 import '../main.dart';
+import '../notifiers/filter_notifier.dart';
 import '../notifiers/play_button_notifier.dart';
 import '../notifiers/progress_notifier.dart';
 import '../notifiers/repeat_button_notifier.dart';
@@ -82,35 +84,43 @@ class TopBar extends StatelessWidget {
             icon: const Icon(FluentIcons.library_16_filled),
             color: StyleList.bottomRowSecondaryButtonColor,
           ),
-          ValueListenableBuilder<Talk?>(
-            valueListenable: pageManager.currentTalkNotifier,
-            builder: (_, talk, __) {
-              return const Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'PLAYING FROM\n',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.88,
-                      ),
-                    ),
-                    TextSpan(
-                      text: '04/2010 to 04/2023',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.12,
-                      ),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              );
+          GestureDetector(
+            onTap: () {
+              context.push(Routes.filterPage.path);
             },
+            child: Container(
+              color: Colors.transparent,
+              child: ValueListenableBuilder<Filter>(
+                valueListenable: pageManager.filterNotifier,
+                builder: (_, filter, __) {
+                  return Text.rich(
+                    TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: 'PLAYING FROM\n',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0.88,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '${filter.start.shortLabel} to ${filter.end.shortLabel}',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  );
+                },
+              ),
+            ),
           ),
           PopupMenuButton(
             child: const Padding(
@@ -132,8 +142,11 @@ class TopBar extends StatelessWidget {
                   ],
                 ),
               ),
-              const PopupMenuItem(
-                child: Row(
+              PopupMenuItem(
+                onTap: () {
+                  context.push(Routes.filterPage.path);
+                },
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
                   children: [

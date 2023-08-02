@@ -1,3 +1,4 @@
+import 'package:conference_radio_flutter/ui/filter_page.dart';
 import 'package:conference_radio_flutter/ui/home_page.dart';
 import 'package:conference_radio_flutter/ui/welcome_begin_page.dart';
 import 'package:conference_radio_flutter/ui/welcome_language_page.dart';
@@ -60,6 +61,10 @@ class AppRouter {
           path: HomePage.route.path,
           builder: (context, state) => const HomePage(),
         ),
+        GoRoute(
+          path: FilterPage.route.path,
+          builder: (context, state) => const FilterPage(),
+        ),
       ],
     );
     return router;
@@ -70,6 +75,7 @@ enum Routes {
   welcomeLanguagePage,
   welcomeBeginPage,
   homePage,
+  filterPage,
 }
 
 extension PathOnRoutesExtension on Routes {

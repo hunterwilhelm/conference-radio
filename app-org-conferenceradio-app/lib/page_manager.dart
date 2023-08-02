@@ -1,7 +1,9 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:conference_radio_flutter/services/talks_db_service.dart';
+import 'package:conference_radio_flutter/ui/filter_page.dart';
 import 'package:flutter/foundation.dart';
 
+import 'notifiers/filter_notifier.dart';
 import 'notifiers/play_button_notifier.dart';
 import 'notifiers/progress_notifier.dart';
 import 'notifiers/repeat_button_notifier.dart';
@@ -11,6 +13,7 @@ import 'services/service_locator.dart';
 class PageManager {
   // Listeners: Updates going to the UI
   final currentTalkNotifier = ValueNotifier<Talk?>(null);
+  final filterNotifier = FilterNotifier();
   final playlistNotifier = ValueNotifier<List<Talk>>([]);
   final progressNotifier = ProgressNotifier();
   final repeatButtonNotifier = RepeatButtonNotifier();
@@ -90,7 +93,9 @@ class PageManager {
   void _listenToChangesInSong() {
     _audioHandler.mediaItem.listen((mediaItem) {
       final prev = currentTalkNotifier.value;
-      currentTalkNotifier.value = playlistNotifier.value.firstWhere((element) => element.talkId.toString() == mediaItem?.id);
+      if (mediaItem != null) {
+        currentTalkNotifier.value = playlistNotifier.value.firstWhere((element) => element.talkId.toString() == mediaItem.id);
+      }
       final index = _audioHandler.queue.value.indexWhere((element) => element.id == mediaItem?.id);
       if (prev != currentTalkNotifier.value && index >= _audioHandler.queue.value.length - 2) {
         add();
@@ -148,7 +153,13 @@ class PageManager {
     final songRepository = getIt<PlaylistRepository>();
     final prevTalk = _audioHandler.queue.value.isEmpty ? null : _audioHandler.queue.value.last;
     final shuffled = isShuffleModeEnabledNotifier.value;
-    final talk = await songRepository.fetchNextTalk(idForSequential: shuffled ? null : prevTalk?.id);
+    final talk = await songRepository.fetchNextTalk(
+      idForSequential: shuffled ? null : prevTalk?.id,
+      filter: filterNotifier.value,
+    );
+    if (talk == null) {
+      return;
+    }
     final mediaItem = MediaItem(
       id: talk.talkId.toString(),
       album: talk.year.toString(),
@@ -174,5 +185,13 @@ class PageManager {
 
   void stop() {
     _audioHandler.stop();
+  }
+
+  void updateFilterStart(YearMonth newYearMonth) {
+    filterNotifier.value = Filter(newYearMonth, filterNotifier.value.end);
+  }
+
+  void updateFilterEnd(YearMonth newYearMonth) {
+    filterNotifier.value = Filter(filterNotifier.value.start, newYearMonth);
   }
 }

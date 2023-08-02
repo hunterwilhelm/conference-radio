@@ -1,3 +1,5 @@
+import 'package:conference_radio_flutter/notifiers/filter_notifier.dart';
+import 'package:conference_radio_flutter/ui/filter_page.dart';
 import 'package:sqflite/sqflite.dart';
 
 _onCreate(Database db, int version) async {
@@ -40,18 +42,39 @@ class TalksDbService {
     });
   }
 
-  Future<Talk> getRandomTalk({String lang = "eng"}) async {
-    final results = await db.rawQuery("""SELECT * FROM `talks` WHERE `lang` = ? ORDER BY RANDOM() LIMIT 1 """, [lang]);
+  Future<Talk> getRandomTalk({String lang = "eng", required Filter filter}) async {
+    final sortedFilter = filter.asSorted();
+    final results = await db.rawQuery("""
+SELECT * FROM `talks` 
+WHERE `lang` = ? 
+AND (year, month) <= (?, ?)
+AND (year, month) >= (?, ?)
+ORDER BY RANDOM() LIMIT 1
+""", [
+      lang,
+      sortedFilter.start.year,
+      sortedFilter.start.month,
+      sortedFilter.end.year,
+      sortedFilter.end.month,
+    ]);
     return Talk.fromMap(results[0]);
   }
 
-  Future<Talk> getNextTalk({String lang = "eng", required int id}) async {
+  Future<Talk?> getNextTalk({String lang = "eng", required int id, required Filter filter}) async {
+    final sortedFilter = filter.asSorted();
     final talkResults = await db.rawQuery(""" SELECT * FROM talks WHERE `talk_id` = ? LIMIT 1 """, [id]);
     final currentTalk = Talk.fromMap(talkResults[0]);
+    final talkDate = YearMonth(currentTalk.year, currentTalk.month).date;
+    final comparison = talkDate.compareTo(sortedFilter.start.date) + talkDate.compareTo(sortedFilter.end.date);
+    if (comparison == -2 || comparison == 2) {
+      return getRandomTalk(filter: filter);
+    }
     final results = await db.rawQuery("""
 SELECT * FROM talks
 WHERE `lang` = ? 
 AND (year, month, session_order, talk_order) < (?, ?, ?, ?)
+AND (year, month) <= (?, ?)
+AND (year, month) >= (?, ?)
 ORDER BY year DESC, month DESC, session_order DESC, talk_order DESC
 LIMIT 1
 """, [
@@ -60,6 +83,10 @@ LIMIT 1
       currentTalk.month,
       currentTalk.sessionOrder,
       currentTalk.talkOrder,
+      sortedFilter.start.year,
+      sortedFilter.start.month,
+      sortedFilter.end.year,
+      sortedFilter.end.month,
     ]);
     return Talk.fromMap(results[0]);
   }
