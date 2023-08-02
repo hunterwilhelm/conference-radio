@@ -3,25 +3,24 @@ import 'package:conference_radio_flutter/services/talks_db_service.dart';
 import 'sync_service.dart';
 
 abstract class PlaylistRepository {
-  Future<List<Talk>> fetchInitialPlaylist();
-  Future<Talk> fetchAnotherTalk();
+  Future<Talk> fetchNextTalk({String? idForSequential});
 }
 
 class DemoPlaylist extends PlaylistRepository {
   late final TalksDbService _talksDbService;
+  bool hasInit = false;
   @override
-  Future<List<Talk>> fetchInitialPlaylist({int length = 3}) async {
-    await SyncService().checkForUpdatesAndApply();
-    _talksDbService = await TalksDbService.init();
-    return Future.wait(List.generate(length, (index) => _nextSong()));
-  }
-
-  @override
-  Future<Talk> fetchAnotherTalk() {
-    return _nextSong();
-  }
-
-  Future<Talk> _nextSong() async {
-    return _talksDbService.getRandomTalk();
+  Future<Talk> fetchNextTalk({String? idForSequential}) async {
+    if (!hasInit) {
+      hasInit = true;
+      _talksDbService = await TalksDbService.init();
+      await SyncService().checkForUpdatesAndApply();
+    }
+    final id = idForSequential == null ? null : int.tryParse(idForSequential);
+    if (id == null) {
+      return _talksDbService.getRandomTalk();
+    } else {
+      return _talksDbService.getNextTalk(id: id);
+    }
   }
 }

@@ -44,6 +44,25 @@ class TalksDbService {
     final results = await db.rawQuery("""SELECT * FROM `talks` WHERE `lang` = ? ORDER BY RANDOM() LIMIT 1 """, [lang]);
     return Talk.fromMap(results[0]);
   }
+
+  Future<Talk> getNextTalk({String lang = "eng", required int id}) async {
+    final talkResults = await db.rawQuery(""" SELECT * FROM talks WHERE `talk_id` = ? LIMIT 1 """, [id]);
+    final currentTalk = Talk.fromMap(talkResults[0]);
+    final results = await db.rawQuery("""
+SELECT * FROM talks
+WHERE `lang` = ? 
+AND (year, month, session_order, talk_order) < (?, ?, ?, ?)
+ORDER BY year DESC, month DESC, session_order DESC, talk_order DESC
+LIMIT 1
+""", [
+      lang,
+      currentTalk.year,
+      currentTalk.month,
+      currentTalk.sessionOrder,
+      currentTalk.talkOrder,
+    ]);
+    return Talk.fromMap(results[0]);
+  }
 }
 
 class Talk {

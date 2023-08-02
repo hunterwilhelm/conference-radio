@@ -32,19 +32,9 @@ class PageManager {
   }
 
   Future<void> _loadPlaylist() async {
-    final songRepository = getIt<PlaylistRepository>();
-    final playlist = await songRepository.fetchInitialPlaylist();
-    final mediaItems = playlist
-        .map((talk) => MediaItem(
-              id: talk.talkId.toString(),
-              album: talk.year.toString(),
-              artist: talk.name,
-              title: talk.title,
-              extras: {'url': talk.mp3},
-              artUri: Uri.tryParse('https://www.conferenceradio.app/app_data/notification_icon.png'),
-            ))
-        .toList();
-    _audioHandler.addQueueItems(mediaItems);
+    for (var _ in Iterable.generate(3)) {
+      await add();
+    }
   }
 
   void _listenToChangesInPlaylist() {
@@ -53,7 +43,7 @@ class PageManager {
         playlistNotifier.value = [];
         currentSongTitleNotifier.value = '';
       } else {
-        final newList = playlist.map((item) => item.title).toList();
+        final newList = playlist.map((item) => "${item.title} ${item.album}").toList();
         playlistNotifier.value = newList;
       }
       _updateSkipButtons();
@@ -158,19 +148,20 @@ class PageManager {
     }
   }
 
-  void shuffle() {
+  void shuffle() async {
     final enable = !isShuffleModeEnabledNotifier.value;
     isShuffleModeEnabledNotifier.value = enable;
-    if (enable) {
-      _audioHandler.setShuffleMode(AudioServiceShuffleMode.all);
-    } else {
-      _audioHandler.setShuffleMode(AudioServiceShuffleMode.none);
-    }
+    remove();
+    remove();
+    await add();
+    await add();
   }
 
   Future<void> add() async {
     final songRepository = getIt<PlaylistRepository>();
-    final talk = await songRepository.fetchAnotherTalk();
+    final prevTalk = _audioHandler.queue.value.isEmpty ? null : _audioHandler.queue.value.last;
+    final shuffled = isShuffleModeEnabledNotifier.value;
+    final talk = await songRepository.fetchNextTalk(idForSequential: shuffled ? null : prevTalk?.id);
     final mediaItem = MediaItem(
       id: talk.talkId.toString(),
       album: talk.year.toString(),
