@@ -8,4 +8,7 @@ class StyleList {
       colors: [Color(0xFF839EAE), Colors.white],
     ),
   );
+
+  static const buttonColor = Color(0xFF244167);
+  static const bottomRowSecondaryButtonColor = Color.fromARGB(255, 87, 87, 87);
 }

@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:conference_radio_flutter/services/talks_db_service.dart';
 import 'package:flutter/foundation.dart';
 
 import 'notifiers/play_button_notifier.dart';
@@ -9,8 +10,8 @@ import 'services/service_locator.dart';
 
 class PageManager {
   // Listeners: Updates going to the UI
-  final currentSongTitleNotifier = ValueNotifier<String>('');
-  final playlistNotifier = ValueNotifier<List<String>>([]);
+  final currentTalkNotifier = ValueNotifier<Talk?>(null);
+  final playlistNotifier = ValueNotifier<List<Talk>>([]);
   final progressNotifier = ProgressNotifier();
   final repeatButtonNotifier = RepeatButtonNotifier();
   final isFirstSongNotifier = ValueNotifier<bool>(true);
@@ -23,7 +24,6 @@ class PageManager {
   // Events: Calls coming from the UI
   void init() async {
     await _loadPlaylist();
-    _listenToChangesInPlaylist();
     _listenToPlaybackState();
     _listenToCurrentPosition();
     _listenToBufferedPosition();
@@ -35,19 +35,6 @@ class PageManager {
     for (var _ in Iterable.generate(3)) {
       await add();
     }
-  }
-
-  void _listenToChangesInPlaylist() {
-    _audioHandler.queue.listen((playlist) {
-      if (playlist.isEmpty) {
-        playlistNotifier.value = [];
-        currentSongTitleNotifier.value = '';
-      } else {
-        final newList = playlist.map((item) => "${item.title} ${item.album}").toList();
-        playlistNotifier.value = newList;
-      }
-      _updateSkipButtons();
-    });
   }
 
   void _listenToPlaybackState() {
@@ -102,10 +89,10 @@ class PageManager {
 
   void _listenToChangesInSong() {
     _audioHandler.mediaItem.listen((mediaItem) {
-      final prev = currentSongTitleNotifier.value;
-      currentSongTitleNotifier.value = mediaItem?.title ?? '';
+      final prev = currentTalkNotifier.value;
+      currentTalkNotifier.value = playlistNotifier.value.firstWhere((element) => element.talkId.toString() == mediaItem?.id);
       final index = _audioHandler.queue.value.indexWhere((element) => element.id == mediaItem?.id);
-      if (prev != currentSongTitleNotifier.value && index >= _audioHandler.queue.value.length - 2) {
+      if (prev != currentTalkNotifier.value && index >= _audioHandler.queue.value.length - 2) {
         add();
       }
       _updateSkipButtons();
@@ -171,12 +158,14 @@ class PageManager {
       artUri: Uri.tryParse('https://www.conferenceradio.app/app_data/notification_icon.png'),
     );
     _audioHandler.addQueueItem(mediaItem);
+    playlistNotifier.value = [...playlistNotifier.value, talk];
   }
 
   void remove() {
     final lastIndex = _audioHandler.queue.value.length - 1;
     if (lastIndex < 0) return;
     _audioHandler.removeQueueItemAt(lastIndex);
+    playlistNotifier.value = [...playlistNotifier.value]..removeLast();
   }
 
   void dispose() {
