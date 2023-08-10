@@ -94,6 +94,8 @@ class PageManager {
     _audioHandler.mediaItem.listen((mediaItem) {
       final prev = currentTalkNotifier.value;
       if (mediaItem != null) {
+        print(mediaItem);
+        print(playlistNotifier.value);
         currentTalkNotifier.value = playlistNotifier.value.firstWhere((element) => element.talkId.toString() == mediaItem.id);
       }
       final index = _audioHandler.queue.value.indexWhere((element) => element.id == mediaItem?.id);
@@ -143,10 +145,19 @@ class PageManager {
   void shuffle() async {
     final enable = !isShuffleModeEnabledNotifier.value;
     isShuffleModeEnabledNotifier.value = enable;
-    remove();
-    remove();
-    await add();
-    await add();
+    final mediaItem = _audioHandler.mediaItem.value;
+    final currentTalk = currentTalkNotifier.value;
+
+    if (mediaItem != null && currentTalk != null) {
+      print("currentTalk");
+      print(currentTalk);
+      print("mediaItem");
+      print(mediaItem);
+      playlistNotifier.value = [currentTalk];
+      _audioHandler.updateQueue([mediaItem]);
+      add();
+      add();
+    }
   }
 
   Future<void> add() async {

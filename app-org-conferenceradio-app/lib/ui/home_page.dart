@@ -5,6 +5,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marquee/marquee.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/style_list.dart';
 import '../main.dart';
@@ -37,6 +38,7 @@ class HomePage extends StatelessWidget {
               TopBar(),
               AlbumCover(),
               TalkDescription(),
+              ActionButtons(),
               Column(
                 children: [
                   AudioProgressBar(),
@@ -278,6 +280,31 @@ class TalkDescription extends StatelessWidget {
             ],
           );
         });
+  }
+}
+
+class ActionButtons extends StatelessWidget {
+  const ActionButtons({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ValueListenableBuilder<Talk?>(
+            valueListenable: getIt<PageManager>().currentTalkNotifier,
+            builder: (context, value, child) {
+              return IconButton(
+                icon: const Icon(Icons.menu_book_rounded),
+                onPressed: () {
+                  final url = Uri.parse("https://www.churchofjesuschrist.org${value?.baseUri ?? ""}");
+                  print(url);
+                  launchUrl(url, mode: LaunchMode.externalApplication);
+                },
+              );
+            })
+      ],
+    );
   }
 }
 

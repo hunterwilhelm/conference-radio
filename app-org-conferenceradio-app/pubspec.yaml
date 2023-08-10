@@ -57,6 +57,7 @@ dependencies:
   figma_squircle: ^0.5.3
   marquee: ^2.2.3
   auto_size_text: ^3.0.0
+  url_launcher: ^6.1.12
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1

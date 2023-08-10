@@ -2,10 +2,10 @@
 
 ### Todos Release 1
  - [x] feature: upgrade audio service to the `just_audio` package
+ - [ ] bug: to fix, reset the queue except for current talk when changing between shuffle and chronological 
  - [ ] bug: the seek bar in the notifications isn't not updating sometimes
  - [ ] bug: that doesn't stop the app when you soft close it on android
  - [ ] feature: allow back to go past the first talk when in chronological mode
- - [ ] bug: to fix, reset the queue except for current talk when changing between shuffle and chronological 
  - [ ] feature: add open in gospel library
  - [ ] feature: languages
  - [ ] feature: add bookmarked talks
