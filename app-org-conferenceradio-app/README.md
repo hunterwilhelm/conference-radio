@@ -9,7 +9,7 @@
  - [x] feature: add open in gospel library
  - [ ] feature: languages
  - [ ] feature: add bookmarked talks
- - [ ] feature: add share in other applications
+ - [x] feature: add share in other applications
  - [ ] feature: iOS podcast buttons in the notifications
  - [ ] feature: android podcast buttons in the notifications
  - [ ] feature: sleep timer
