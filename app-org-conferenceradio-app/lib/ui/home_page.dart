@@ -3,8 +3,10 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marquee/marquee.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/style_list.dart';
@@ -283,28 +285,44 @@ class TalkDescription extends StatelessWidget {
   }
 }
 
-class ActionButtons extends StatelessWidget {
+class ActionButtons extends HookWidget {
   const ActionButtons({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ValueListenableBuilder<Talk?>(
-            valueListenable: getIt<PageManager>().currentTalkNotifier,
-            builder: (context, value, child) {
-              return IconButton(
+    final isBookmarked = useState(true);
+    return ValueListenableBuilder<Talk?>(
+        valueListenable: getIt<PageManager>().currentTalkNotifier,
+        builder: (context, value, child) {
+          final talkUrl = "https://www.churchofjesuschrist.org${value?.baseUri ?? ""}";
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
                 icon: const Icon(Icons.menu_book_rounded),
                 onPressed: () {
-                  final url = Uri.parse("https://www.churchofjesuschrist.org${value?.baseUri ?? ""}");
-                  print(url);
+                  final url = Uri.parse(talkUrl);
                   launchUrl(url, mode: LaunchMode.externalApplication);
                 },
-              );
-            })
-      ],
-    );
+              ),
+              IconButton(
+                icon: const Icon(
+                  FluentIcons.bookmark_16_filled,
+                  color: Color(0xFF0085FF),
+                ),
+                onPressed: () {
+                  isBookmarked.value;
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.adaptive.share),
+                onPressed: () {
+                  Share.share(talkUrl);
+                },
+              ),
+            ],
+          );
+        });
   }
 }
 
