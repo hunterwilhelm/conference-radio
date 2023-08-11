@@ -296,7 +296,7 @@ class ActionButtons extends HookWidget {
         builder: (context, value, child) {
           final talkUrl = "https://www.churchofjesuschrist.org${value?.baseUri ?? ""}";
           return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               IconButton(
                 icon: const Icon(Icons.menu_book_rounded),
@@ -306,12 +306,17 @@ class ActionButtons extends HookWidget {
                 },
               ),
               IconButton(
-                icon: const Icon(
-                  FluentIcons.bookmark_16_filled,
-                  color: Color(0xFF0085FF),
-                ),
+                icon: isBookmarked.value
+                    ? const Icon(
+                        FluentIcons.bookmark_16_filled,
+                        color: Color(0xFF0085FF),
+                      )
+                    : const Icon(
+                        FluentIcons.bookmark_16_regular,
+                        color: Colors.black,
+                      ),
                 onPressed: () {
-                  isBookmarked.value;
+                  isBookmarked.value = !isBookmarked.value;
                 },
               ),
               IconButton(
