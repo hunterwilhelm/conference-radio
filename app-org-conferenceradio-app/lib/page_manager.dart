@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:conference_radio_flutter/services/talks_db_service.dart';
 import 'package:conference_radio_flutter/ui/filter_page.dart';
 import 'package:flutter/foundation.dart';
@@ -35,9 +36,7 @@ class PageManager {
   }
 
   Future<void> _loadPlaylist() async {
-    for (var _ in Iterable.generate(3)) {
-      await add();
-    }
+    await refreshPlaylist();
   }
 
   void _listenToPlaybackState() {
@@ -94,13 +93,11 @@ class PageManager {
     _audioHandler.mediaItem.listen((mediaItem) {
       final prev = currentTalkNotifier.value;
       if (mediaItem != null) {
-        print(mediaItem);
-        print(playlistNotifier.value);
         currentTalkNotifier.value = playlistNotifier.value.firstWhere((element) => element.talkId.toString() == mediaItem.id);
       }
       final index = _audioHandler.queue.value.indexWhere((element) => element.id == mediaItem?.id);
       if (prev != currentTalkNotifier.value && index >= _audioHandler.queue.value.length - 2) {
-        add();
+        refreshPlaylist();
       }
       _updateSkipButtons();
     });
@@ -118,7 +115,12 @@ class PageManager {
     }
   }
 
-  void play() => _audioHandler.play();
+  void play() async {
+    final session = await AudioSession.instance;
+    await session.configure(const AudioSessionConfiguration.speech());
+    _audioHandler.play();
+  }
+
   void pause() => _audioHandler.pause();
 
   void seek(Duration position) => _audioHandler.seek(position);
@@ -145,42 +147,31 @@ class PageManager {
   void shuffle() async {
     final enable = !isShuffleModeEnabledNotifier.value;
     isShuffleModeEnabledNotifier.value = enable;
-    final mediaItem = _audioHandler.mediaItem.value;
-    final currentTalk = currentTalkNotifier.value;
-
-    if (mediaItem != null && currentTalk != null) {
-      print("currentTalk");
-      print(currentTalk);
-      print("mediaItem");
-      print(mediaItem);
-      playlistNotifier.value = [currentTalk];
-      _audioHandler.updateQueue([mediaItem]);
-      add();
-      add();
+    if (enable) {
+      _audioHandler.setShuffleMode(AudioServiceShuffleMode.all);
+    } else {
+      _audioHandler.setShuffleMode(AudioServiceShuffleMode.none);
     }
   }
 
-  Future<void> add() async {
+  Future<void> refreshPlaylist() async {
     final songRepository = getIt<PlaylistRepository>();
-    final prevTalk = _audioHandler.queue.value.isEmpty ? null : _audioHandler.queue.value.last;
-    final shuffled = isShuffleModeEnabledNotifier.value;
-    final talk = await songRepository.fetchNextTalk(
-      idForSequential: shuffled ? null : prevTalk?.id,
+    final talks = await songRepository.fetchTalkPlaylist(
       filter: filterNotifier.value,
     );
-    if (talk == null) {
-      return;
-    }
-    final mediaItem = MediaItem(
-      id: talk.talkId.toString(),
-      album: talk.year.toString(),
-      artist: talk.name,
-      title: talk.title,
-      extras: {'url': talk.mp3},
-      artUri: Uri.tryParse('https://www.conferenceradio.app/app_data/notification_icon.png'),
-    );
-    _audioHandler.addQueueItem(mediaItem);
-    playlistNotifier.value = [...playlistNotifier.value, talk];
+    final talkMediaItems = talks
+        .map((talk) => MediaItem(
+              id: talk.talkId.toString(),
+              album: talk.year.toString(),
+              artist: talk.name,
+              title: talk.title,
+              extras: {'url': talk.mp3},
+              artUri: Uri.tryParse('https://www.conferenceradio.app/app_data/notification_icon.png'),
+            ))
+        .toList();
+    _audioHandler.updateQueue(talkMediaItems);
+    playlistNotifier.value = talks;
+    currentTalkNotifier.value = talks[0];
   }
 
   void remove() {
@@ -194,8 +185,8 @@ class PageManager {
     _audioHandler.customAction('dispose');
   }
 
-  void stop() {
-    _audioHandler.stop();
+  Future<void> stop() async {
+    await _audioHandler.stop();
   }
 
   void updateFilterStart(YearMonth newYearMonth) {

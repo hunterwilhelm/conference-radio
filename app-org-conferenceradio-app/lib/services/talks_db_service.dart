@@ -90,6 +90,24 @@ LIMIT 1
     ]);
     return Talk.fromMap(results[0]);
   }
+
+  Future<List<Talk>> getTalkPlaylist({String lang = "eng", required Filter filter}) async {
+    final sortedFilter = filter.asSorted();
+    final results = await db.rawQuery("""
+SELECT * FROM talks
+WHERE `lang` = ? 
+AND (year, month) <= (?, ?)
+AND (year, month) >= (?, ?)
+ORDER BY year ASC, month ASC, session_order ASC, talk_order ASC
+""", [
+      lang,
+      sortedFilter.start.year,
+      sortedFilter.start.month,
+      sortedFilter.end.year,
+      sortedFilter.end.month,
+    ]);
+    return results.map((talkMap) => Talk.fromMap(talkMap)).toList();
+  }
 }
 
 class Talk {

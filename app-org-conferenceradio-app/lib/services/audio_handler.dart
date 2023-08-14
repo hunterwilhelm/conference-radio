@@ -127,6 +127,18 @@ class MyAudioHandler extends BaseAudioHandler {
     queue.add(newQueue);
   }
 
+  @override
+  Future<void> updateQueue(List<MediaItem> mediaItems) async {
+    // manage Just Audio
+    final audioSource = mediaItems.map(_createAudioSource);
+    _playlist.clear();
+    _playlist.addAll(audioSource.toList());
+
+    // notify system
+    final newQueue = mediaItems;
+    queue.add(newQueue);
+  }
+
   UriAudioSource _createAudioSource(MediaItem mediaItem) {
     return AudioSource.uri(
       Uri.parse(mediaItem.extras!['url'] as String),
