@@ -24,6 +24,8 @@
  - [ ] feature: add art
  - [ ] feature: donate link
  - [ ] feature: add autoplay settings
+ - [ ] feature: achievement style checkbox for seeing all the talks you have listened to and not listened to
+ - [ ] feature: take the photos from the link previews of the talk and use it for the album art.
  
 ### Todos Release 3
 #### Requirements to begin: 100 monthly active users & 1 donation
