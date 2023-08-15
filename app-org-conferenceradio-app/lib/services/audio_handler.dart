@@ -178,7 +178,16 @@ class MyAudioHandler extends BaseAudioHandler {
   Future<void> skipToNext() => _player.seekToNext();
 
   @override
-  Future<void> skipToPrevious() => _player.seekToPrevious();
+  Future<void> skipToPrevious() {
+    print("skipToPrevious");
+    if (_player.position.inSeconds > 5) {
+      print("va");
+      return _player.seek(Duration.zero);
+    } else {
+      print("vb");
+      return _player.seekToPrevious();
+    }
+  }
 
   @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {

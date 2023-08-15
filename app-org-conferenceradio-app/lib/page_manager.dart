@@ -126,7 +126,6 @@ class PageManager {
   void seek(Duration position) => _audioHandler.seek(position);
 
   void previous() {
-    print("previous");
     _audioHandler.skipToPrevious();
   }
 
