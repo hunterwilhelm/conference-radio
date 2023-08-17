@@ -5,7 +5,7 @@
  - [x] bug: to fix, reset the queue except for current talk when changing between shuffle and chronological 
  - [-] bug: when pressing back while listening beyond 30 seconds of a talk, make it go to the beginning of the talk. (Works for phone screen but not headphones)
  - [x] bug: disable landscape mode
- - [ ] bug: fix android app icon from being too big
+ - [x] bug: fix android app icon from being too big
  - [ ] bug: the seek bar in the notifications isn't not updating sometimes
  - [ ] bug: that doesn't stop the app when you soft close it on android
  - [x] feature: allow back to go past the first talk when in chronological mode
