@@ -11,6 +11,7 @@
  - [ ] bug: fix filters
  - [x] feature: allow back to go past the first talk when in chronological mode
  - [x] feature: add open in gospel library
+ - [ ] feature: save where you were and your settings to your phone
  - [ ] feature: languages
  - [ ] feature: add bookmarked talks
  - [x] feature: add share in other applications
