@@ -132,7 +132,10 @@ class MyAudioHandler extends BaseAudioHandler {
     // manage Just Audio
     final audioSource = mediaItems.map(_createAudioSource);
     _playlist.clear();
-    _playlist.addAll(audioSource.toList());
+    print(mediaItems.length);
+    print('adding...');
+    await _playlist.addAll(audioSource.toList());
+    print('done.');
 
     // notify system
     final newQueue = mediaItems;

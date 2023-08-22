@@ -172,7 +172,7 @@ class PageManager {
               artUri: Uri.tryParse('https://www.conferenceradio.app/app_data/notification_icon.png'),
             ))
         .toList();
-    _audioHandler.updateQueue(talkMediaItems);
+    await _audioHandler.updateQueue(talkMediaItems);
     playlistNotifier.value = talks;
     currentTalkNotifier.value = talks[0];
   }
