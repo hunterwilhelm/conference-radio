@@ -96,9 +96,9 @@ class PageManager {
         currentTalkNotifier.value = playlistNotifier.value.firstWhere((element) => element.talkId.toString() == mediaItem.id);
       }
       final index = _audioHandler.queue.value.indexWhere((element) => element.id == mediaItem?.id);
-      if (prev != currentTalkNotifier.value && index >= _audioHandler.queue.value.length - 2) {
-        refreshPlaylist();
-      }
+      // if (prev != currentTalkNotifier.value && index >= _audioHandler.queue.value.length - 2) {
+      //   refreshPlaylist();
+      // }
       _updateSkipButtons();
     });
   }

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -71,12 +73,13 @@ class MyAudioHandler extends BaseAudioHandler {
 
   void _listenForDurationChanges() {
     _player.durationStream.listen((duration) {
+      print("durationStream");
       var index = _player.currentIndex;
       final newQueue = queue.value;
       if (index == null || newQueue.isEmpty) return;
-      if (_player.shuffleModeEnabled) {
-        index = _player.shuffleIndices!.indexOf(index);
-      }
+      // if (_player.shuffleModeEnabled) {
+      //   index = _player.shuffleIndices!.indexOf(index);
+      // }
       final oldMediaItem = newQueue[index];
       final newMediaItem = oldMediaItem.copyWith(duration: duration);
       newQueue[index] = newMediaItem;
@@ -87,59 +90,75 @@ class MyAudioHandler extends BaseAudioHandler {
 
   void _listenForCurrentSongIndexChanges() {
     _player.currentIndexStream.listen((index) {
-      final playlist = queue.value;
-      if (index == null || playlist.isEmpty) return;
-      if (_player.shuffleModeEnabled) {
-        index = _player.shuffleIndices!.indexOf(index);
-      }
-      mediaItem.add(playlist[index]);
+      if (index == null) return;
+      _lazyLoadTracks(index);
+      // final playlist = queue.value;
+      // if (index == null || playlist.isEmpty) return;
+      // if (_player.shuffleModeEnabled) {
+      //   index = _player.shuffleIndices!.indexOf(index);
+      // }
+      // mediaItem.add(playlist[index]);
     });
+  }
+
+  Future<void> _lazyLoadTracks(int index) async {
+    print("currentIndexStream");
+    const downloadAhead = 5;
+    final remainingTracksInPlaylist = _playlist.length - index - 1;
+    if (remainingTracksInPlaylist <= downloadAhead && queue.value.isNotEmpty) {
+      // manage Just Audio
+      final audioSources = queue.value.sublist(_playlist.length, min(queue.value.length, _playlist.length - 1 + downloadAhead)).map(_createAudioSource);
+      print('adding... ${audioSources.length}');
+      for (var audioItem in audioSources) {
+        await _playlist.add(audioItem);
+        await Future.microtask(() {});
+      }
+      print('done.');
+    }
   }
 
   void _listenForSequenceStateChanges() {
     _player.sequenceStateStream.listen((SequenceState? sequenceState) {
-      final sequence = sequenceState?.effectiveSequence;
-      if (sequence == null || sequence.isEmpty) return;
-      final items = sequence.map((source) => source.tag as MediaItem);
-      queue.add(items.toList());
+      // final sequence = sequenceState?.effectiveSequence;
+      // if (sequence == null || sequence.isEmpty) return;
+      // final items = sequence.map((source) => source.tag as MediaItem);
+      // queue.add(items.toList());
     });
   }
 
   @override
   Future<void> addQueueItems(List<MediaItem> mediaItems) async {
+    print("addQueueItems");
     // manage Just Audio
-    final audioSource = mediaItems.map(_createAudioSource);
-    _playlist.addAll(audioSource.toList());
+    // final audioSource = mediaItems.map(_createAudioSource);
+    // _playlist.addAll(audioSource.toList());
 
-    // notify system
-    final newQueue = queue.value..addAll(mediaItems);
-    queue.add(newQueue);
+    // // notify system
+    // final newQueue = queue.value..addAll(mediaItems);
+    // queue.add(newQueue);
   }
 
   @override
   Future<void> addQueueItem(MediaItem mediaItem) async {
-    // manage Just Audio
-    final audioSource = _createAudioSource(mediaItem);
-    _playlist.add(audioSource);
+    print("addQueueItem");
+    // // manage Just Audio
+    // final audioSource = _createAudioSource(mediaItem);
+    // _playlist.add(audioSource);
 
-    // notify system
-    final newQueue = queue.value..add(mediaItem);
-    queue.add(newQueue);
+    // // notify system
+    // final newQueue = queue.value..add(mediaItem);
+    // queue.add(newQueue);
   }
 
   @override
   Future<void> updateQueue(List<MediaItem> mediaItems) async {
-    // manage Just Audio
-    final audioSource = mediaItems.map(_createAudioSource);
     _playlist.clear();
-    print(mediaItems.length);
-    print('adding...');
-    await _playlist.addAll(audioSource.toList());
-    print('done.');
 
     // notify system
     final newQueue = mediaItems;
     queue.add(newQueue);
+
+    _lazyLoadTracks(0);
   }
 
   UriAudioSource _createAudioSource(MediaItem mediaItem) {
@@ -151,12 +170,13 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> removeQueueItemAt(int index) async {
-    // manage Just Audio
-    _playlist.removeAt(index);
+    print("removeQueueItemAt");
+    // // manage Just Audio
+    // _playlist.removeAt(index);
 
-    // notify system
-    final newQueue = queue.value..removeAt(index);
-    queue.add(newQueue);
+    // // notify system
+    // final newQueue = queue.value..removeAt(index);
+    // queue.add(newQueue);
   }
 
   @override
@@ -170,18 +190,22 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToQueueItem(int index) async {
-    if (index < 0 || index >= queue.value.length) return;
-    if (_player.shuffleModeEnabled) {
-      index = _player.shuffleIndices![index];
-    }
-    _player.seek(Duration.zero, index: index);
+    print("skipToQueueItem");
+    // if (index < 0 || index >= queue.value.length) return;
+    // if (_player.shuffleModeEnabled) {
+    //   index = _player.shuffleIndices![index];
+    // }
+    // _player.seek(Duration.zero, index: index);
   }
 
   @override
-  Future<void> skipToNext() => _player.seekToNext();
+  Future<void> skipToNext() async {
+    print("skipToNext");
+    _player.seekToNext();
+  }
 
   @override
-  Future<void> skipToPrevious() {
+  Future<void> skipToPrevious() async {
     print("skipToPrevious");
     if (_player.position.inSeconds > 5) {
       print("va");
@@ -194,28 +218,28 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
-    switch (repeatMode) {
-      case AudioServiceRepeatMode.none:
-        _player.setLoopMode(LoopMode.off);
-        break;
-      case AudioServiceRepeatMode.one:
-        _player.setLoopMode(LoopMode.one);
-        break;
-      case AudioServiceRepeatMode.group:
-      case AudioServiceRepeatMode.all:
-        _player.setLoopMode(LoopMode.all);
-        break;
-    }
+    // switch (repeatMode) {
+    //   case AudioServiceRepeatMode.none:
+    //     _player.setLoopMode(LoopMode.off);
+    //     break;
+    //   case AudioServiceRepeatMode.one:
+    //     _player.setLoopMode(LoopMode.one);
+    //     break;
+    //   case AudioServiceRepeatMode.group:
+    //   case AudioServiceRepeatMode.all:
+    //     _player.setLoopMode(LoopMode.all);
+    //     break;
+    // }
   }
 
   @override
   Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
-    if (shuffleMode == AudioServiceShuffleMode.none) {
-      _player.setShuffleModeEnabled(false);
-    } else {
-      await _player.shuffle();
-      _player.setShuffleModeEnabled(true);
-    }
+    // if (shuffleMode == AudioServiceShuffleMode.none) {
+    //   _player.setShuffleModeEnabled(false);
+    // } else {
+    //   await _player.shuffle();
+    //   _player.setShuffleModeEnabled(true);
+    // }
   }
 
   @override
