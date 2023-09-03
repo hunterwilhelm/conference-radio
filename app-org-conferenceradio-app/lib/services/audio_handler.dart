@@ -58,6 +58,7 @@ class PlaylistManager {
   setPlaylist(List<MediaItem> mediaItems) {
     _playlist.clear();
     _playlist.addAll(mediaItems);
+    setShuffled(_shuffled, true);
     _updatePlayer();
   }
 
@@ -89,16 +90,18 @@ class PlaylistManager {
     }
   }
 
-  void setShuffled(bool newShuffled) {
-    if (newShuffled == _shuffled) return;
+  void setShuffled(bool newShuffled, [bool? force]) {
+    if (newShuffled == _shuffled && force != true) return;
     if (newShuffled) {
       final indices = List.generate(_playlist.length, (index) => index).where((element) => element != currentIndex).toList();
       shuffle(indices);
       _shuffleIndices.clear();
       _shuffleIndices.addAll(indices..insert(0, currentIndex));
       currentIndex = 0;
-    } else {
+    } else if (_shuffleIndices.isNotEmpty) {
       currentIndex = _shuffleIndices[currentIndex];
+    } else {
+      currentIndex = 0;
     }
     _shuffled = newShuffled;
   }
