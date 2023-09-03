@@ -93,7 +93,9 @@ class PageManager {
     _audioHandler.mediaItem.listen((mediaItem) {
       final prev = currentTalkNotifier.value;
       if (mediaItem != null) {
-        currentTalkNotifier.value = playlistNotifier.value.firstWhere((element) => element.talkId.toString() == mediaItem.id);
+        var firstWhere = playlistNotifier.value.firstWhere((element) => element.talkId.toString() == mediaItem.id);
+        print(firstWhere.title);
+        currentTalkNotifier.value = firstWhere;
       }
       final index = _audioHandler.queue.value.indexWhere((element) => element.id == mediaItem?.id);
       // if (prev != currentTalkNotifier.value && index >= _audioHandler.queue.value.length - 2) {
@@ -174,7 +176,7 @@ class PageManager {
         .toList();
     await _audioHandler.updateQueue(talkMediaItems);
     playlistNotifier.value = talks;
-    currentTalkNotifier.value = talks[0];
+    // currentTalkNotifier.value = talks[0];
   }
 
   void remove() {
