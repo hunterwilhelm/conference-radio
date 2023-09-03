@@ -164,10 +164,7 @@ class MyAudioHandler extends BaseAudioHandler {
 
   void _listenForDurationChanges() {
     streamSubscriptions.add(_playlistManager.player.durationStream.listen((duration) {
-      print("durationStream");
-      print(duration);
       final oldMediaItem = _playlistManager.mediaItem.valueOrNull;
-      print(oldMediaItem);
       if (oldMediaItem == null) return;
       final newMediaItem = oldMediaItem.copyWith(duration: duration);
       mediaItem.add(newMediaItem);
@@ -176,9 +173,6 @@ class MyAudioHandler extends BaseAudioHandler {
 
   void _listenForCurrentSongIndexChanges() {
     streamSubscriptions.add(_playlistManager.mediaItem.listen((newMediaItem) {
-      print("newMediaItem");
-      print(_playlistManager.mediaItem.valueOrNull);
-      print(newMediaItem);
       mediaItem.add(newMediaItem);
     }));
   }
@@ -217,14 +211,7 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToQueueItem(int index) async {
-    print("skipToQueueItem");
-    throw UnimplementedError();
-
-    // if (index < 0 || index >= queue.value.length) return;
-    // if (_player.shuffleModeEnabled) {
-    //   index = _player.shuffleIndices![index];
-    // }
-    // _player.seek(Duration.zero, index: index);
+    throw UnimplementedError("skipToQueueItem");
   }
 
   @override
@@ -235,18 +222,15 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> skipToPrevious() async {
     if (_playlistManager.player.position.inSeconds > 5) {
-      print("va");
       return _playlistManager.player.seek(Duration.zero);
     } else {
-      print("vb");
       return _playlistManager.seekToPrevious();
     }
   }
 
   @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
-    print("setRepeatMode");
-    throw UnimplementedError();
+    throw UnimplementedError("setRepeatMode");
   }
 
   @override
