@@ -8,7 +8,7 @@
  - [x] bug: fix android app icon from being too big
  - [ ] bug: the seek bar in the notifications isn't not updating sometimes
  - [x] bug: that doesn't stop the app when you soft close it on android
- - [ ] bug: fix filters
+ - [x] bug: fix filters
  - [x] feature: allow back to go past the first talk when in chronological mode
  - [x] feature: add open in gospel library
  - [ ] feature: save where you were and your settings to your phone
