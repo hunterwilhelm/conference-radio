@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:collection/collection.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:quiver/iterables.dart' show range;
 
 Future<AudioHandler> initAudioService() async {
   return await AudioService.init(
@@ -18,6 +20,9 @@ Future<AudioHandler> initAudioService() async {
 class MyAudioHandler extends BaseAudioHandler {
   final _player = AudioPlayer();
   final _playlist = ConcatenatingAudioSource(children: []);
+  final _reversePlaylist = ConcatenatingAudioSource(children: []);
+  bool _shuffleMode = false;
+  List<int> _shuffleIndices = [];
 
   MyAudioHandler() {
     _loadEmptyPlaylist();
@@ -80,9 +85,10 @@ class MyAudioHandler extends BaseAudioHandler {
       // if (_player.shuffleModeEnabled) {
       //   index = _player.shuffleIndices!.indexOf(index);
       // }
-      final oldMediaItem = newQueue[index];
+      final finalIndex = getFinalIndex(index);
+      final oldMediaItem = newQueue[finalIndex];
       final newMediaItem = oldMediaItem.copyWith(duration: duration);
-      newQueue[index] = newMediaItem;
+      newQueue[finalIndex] = newMediaItem;
       queue.add(newQueue);
       mediaItem.add(newMediaItem);
     });
@@ -90,14 +96,11 @@ class MyAudioHandler extends BaseAudioHandler {
 
   void _listenForCurrentSongIndexChanges() {
     _player.currentIndexStream.listen((index) {
-      if (index == null) return;
+      final playlist = queue.value;
+      if (index == null || playlist.isEmpty) return;
       _lazyLoadTracks(index);
-      // final playlist = queue.value;
-      // if (index == null || playlist.isEmpty) return;
-      // if (_player.shuffleModeEnabled) {
-      //   index = _player.shuffleIndices!.indexOf(index);
-      // }
-      // mediaItem.add(playlist[index]);
+      final finalIndex = getFinalIndex(index);
+      mediaItem.add(playlist[finalIndex]);
     });
   }
 
@@ -107,7 +110,11 @@ class MyAudioHandler extends BaseAudioHandler {
     final remainingTracksInPlaylist = _playlist.length - index - 1;
     if (remainingTracksInPlaylist <= downloadAhead && queue.value.isNotEmpty) {
       // manage Just Audio
-      final audioSources = queue.value.sublist(_playlist.length, min(queue.value.length, _playlist.length - 1 + downloadAhead)).map(_createAudioSource);
+      final audioSources = range(_playlist.length, min(queue.value.length, _playlist.length - 1 + downloadAhead)).map((index) {
+        final finalIndex = getFinalIndex(index);
+        print("final idnex: $finalIndex");
+        return _createAudioSource(queue.value[finalIndex]);
+      });
       print('adding... ${audioSources.length}');
       for (var audioItem in audioSources) {
         await _playlist.add(audioItem);
@@ -116,6 +123,8 @@ class MyAudioHandler extends BaseAudioHandler {
       print('done.');
     }
   }
+
+  int getFinalIndex(num index) => _shuffleMode ? _shuffleIndices[index.toInt()] : index.toInt();
 
   void _listenForSequenceStateChanges() {
     _player.sequenceStateStream.listen((SequenceState? sequenceState) {
@@ -129,6 +138,7 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> addQueueItems(List<MediaItem> mediaItems) async {
     print("addQueueItems");
+    throw UnimplementedError();
     // manage Just Audio
     // final audioSource = mediaItems.map(_createAudioSource);
     // _playlist.addAll(audioSource.toList());
@@ -141,6 +151,7 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> addQueueItem(MediaItem mediaItem) async {
     print("addQueueItem");
+    throw UnimplementedError();
     // // manage Just Audio
     // final audioSource = _createAudioSource(mediaItem);
     // _playlist.add(audioSource);
@@ -171,6 +182,7 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> removeQueueItemAt(int index) async {
     print("removeQueueItemAt");
+    throw UnimplementedError();
     // // manage Just Audio
     // _playlist.removeAt(index);
 
@@ -191,6 +203,8 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> skipToQueueItem(int index) async {
     print("skipToQueueItem");
+    throw UnimplementedError();
+
     // if (index < 0 || index >= queue.value.length) return;
     // if (_player.shuffleModeEnabled) {
     //   index = _player.shuffleIndices![index];
@@ -200,13 +214,11 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToNext() async {
-    print("skipToNext");
     _player.seekToNext();
   }
 
   @override
   Future<void> skipToPrevious() async {
-    print("skipToPrevious");
     if (_player.position.inSeconds > 5) {
       print("va");
       return _player.seek(Duration.zero);
@@ -218,6 +230,9 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
+    print("setRepeatMode");
+    throw UnimplementedError();
+
     // switch (repeatMode) {
     //   case AudioServiceRepeatMode.none:
     //     _player.setLoopMode(LoopMode.off);
@@ -234,12 +249,24 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
-    // if (shuffleMode == AudioServiceShuffleMode.none) {
-    //   _player.setShuffleModeEnabled(false);
-    // } else {
-    //   await _player.shuffle();
-    //   _player.setShuffleModeEnabled(true);
-    // }
+    if (shuffleMode == AudioServiceShuffleMode.none) {
+      _shuffleMode = false;
+      // _player.setShuffleModeEnabled(false);
+    } else {
+      _shuffleMode = true;
+      _shuffle();
+
+      // _player.setShuffleModeEnabled(true);
+    }
+  }
+
+  void _shuffle() {
+    final currentIndex = playbackState.value.queueIndex ?? 0;
+    final indices = List.generate(queue.value.length, (index) => index).where((element) => element != currentIndex).toList();
+    shuffle(indices);
+    _shuffleIndices = indices..insert(0, currentIndex);
+    _playlist.clear();
+    _lazyLoadTracks(0);
   }
 
   @override
