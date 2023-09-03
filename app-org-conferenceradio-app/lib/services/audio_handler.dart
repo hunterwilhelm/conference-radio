@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:audio_service/audio_service.dart';
 import 'package:collection/collection.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:quiver/iterables.dart' show range;
 import 'package:rxdart/rxdart.dart';
 
 Future<AudioHandler> initAudioService() async {
@@ -25,17 +24,14 @@ class PlaylistManager {
   }
 
   _listenForEndOfSong() {
-    // _streamSubscriptions.add(_player.playbackEventStream.listen((playbackEvent) {
-    //   if (playbackEvent.processingState == ProcessingState.completed && playbackEvent.updatePosition == _player.duration) {
-    //     print("playbackEventStream");
-    //     print(playbackEvent);
-    //     Future.microtask(() async {
-    //       await seekToNext();
-    //       await player.play();
-    //       print("NEXT");
-    //     });
-    //   }
-    // }));
+    _streamSubscriptions.add(_player.playbackEventStream.listen((playbackEvent) {
+      if (playbackEvent.processingState == ProcessingState.completed && playbackEvent.updatePosition == _player.duration) {
+        Future.microtask(() async {
+          await seekToNext();
+          await player.play();
+        });
+      }
+    }));
   }
 
   final _player = AudioPlayer();
@@ -45,6 +41,7 @@ class PlaylistManager {
   final BehaviorSubject<MediaItem> mediaItem = BehaviorSubject();
   final List<int> _shuffleIndices = [];
   final List<StreamSubscription> _streamSubscriptions = [];
+  bool _shuffled = false;
 
   /// The index of the next item to be played, or `null` if there is no next
   /// item.
@@ -65,7 +62,8 @@ class PlaylistManager {
   }
 
   _updatePlayer() async {
-    final newMediaItem = _playlist[currentIndex];
+    final finalIndex = _shuffled ? _shuffleIndices[currentIndex] : currentIndex;
+    final newMediaItem = _playlist[finalIndex];
     mediaItem.add(newMediaItem);
     await _player.setAudioSource(_createAudioSource(newMediaItem));
   }
@@ -91,11 +89,18 @@ class PlaylistManager {
     }
   }
 
-  void setShuffled(bool bool) {
-    final indices = List.generate(_playlist.length, (index) => index).where((element) => element != currentIndex).toList();
-    shuffle(indices);
-    _shuffleIndices.clear();
-    _shuffleIndices.addAll(indices..insert(0, currentIndex));
+  void setShuffled(bool newShuffled) {
+    if (newShuffled == _shuffled) return;
+    if (newShuffled) {
+      final indices = List.generate(_playlist.length, (index) => index).where((element) => element != currentIndex).toList();
+      shuffle(indices);
+      _shuffleIndices.clear();
+      _shuffleIndices.addAll(indices..insert(0, currentIndex));
+      currentIndex = 0;
+    } else {
+      currentIndex = _shuffleIndices[currentIndex];
+    }
+    _shuffled = newShuffled;
   }
 
   Future<void> dispose() async {
@@ -243,7 +248,7 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
-    _playlistManager.setShuffled(shuffleMode == AudioServiceShuffleMode.none);
+    _playlistManager.setShuffled(shuffleMode != AudioServiceShuffleMode.none);
   }
 
   @override
