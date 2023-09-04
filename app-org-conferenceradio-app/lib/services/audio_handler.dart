@@ -35,12 +35,9 @@ class PlaylistManager {
 
   void _listenForCurrentSongIndexChanges() {
     int? previousIndex = _player.currentIndex;
-    int previousFrontLoadingCount = _playlistFrontLoadingCount;
     _streamSubscriptions.add(_player.currentIndexStream.listen((index) {
       _updateMediaItem();
       _lazyLoadPlaylist();
-
-      // print("currentIndexStream: $index");
       final previousIndex_ = previousIndex;
       previousIndex = index;
       if (previousIndex_ == null || index == null) return;
@@ -49,13 +46,6 @@ class PlaylistManager {
         currentIndex += delta;
         _playlistFrontLoadingCount += delta;
       }
-      // final previousFrontLoadingCount_ = previousFrontLoadingCount;
-      // previousFrontLoadingCount = _playlistFrontLoadingCount;
-      // if (previousIndex_ == null || index == null) return;
-      // final delta = index - previousIndex_ + previousFrontLoadingCount_ - previousFrontLoadingCount;
-      // print("delta: ${delta}");
-      // currentIndex += delta;
-      // _updatePlayer();
     }));
   }
 
@@ -119,7 +109,6 @@ class PlaylistManager {
       return;
     }
     final id = Random().nextDouble();
-    print("start... $id");
     _updatePlayerRunning = true;
     final currentIndex_ = currentIndex;
 
@@ -138,7 +127,6 @@ class PlaylistManager {
 
     // preload previous
     final currentPreviousPadding = _player.currentIndex ?? 0;
-    print("$currentPreviousPadding");
     final previousCountToAdd = preloadPaddingCount - currentPreviousPadding;
     // Pad the beginning of the playlist
     if (previousCountToAdd > 0) {
@@ -149,9 +137,7 @@ class PlaylistManager {
         final future = _subPlaylist.insert(0, _createAudioSource(mediaItem));
         _subPlaylistItems.insert(0, mediaItem);
         _playlistFrontLoadingCount++;
-        print((mediaItem.title,));
         await future;
-        // seekToPrevious();
         await Future.microtask(() {});
       }
     }
@@ -162,12 +148,9 @@ class PlaylistManager {
     if (_updatePlayerWasCalledWhileRunning) {
       _updatePlayerWasCalledWhileRunning = false;
       Future.microtask(() {
-        print("recur");
         _lazyLoadPlaylist();
       });
     }
-
-    print("end... $id");
   }
 
   UriAudioSource _createAudioSource(MediaItem mediaItem) {
