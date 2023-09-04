@@ -47,7 +47,7 @@ class _MyAppState extends State<MyApp> {
 class AppRouter {
   GoRouter router(BuildContext context) {
     final router = GoRouter(
-      initialLocation: WelcomeLanguagePage.route.path,
+      initialLocation: HomePage.route.path,
       routes: [
         GoRoute(
           path: WelcomeLanguagePage.route.path,

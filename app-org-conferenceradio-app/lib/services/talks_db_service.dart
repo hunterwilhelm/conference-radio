@@ -106,7 +106,6 @@ ORDER BY year ASC, month ASC, session_order ASC, talk_order ASC
       sortedFilter.end.year,
       sortedFilter.end.month,
     ]);
-    print(results);
     return results.map((talkMap) => Talk.fromMap(talkMap)).toList();
   }
 }

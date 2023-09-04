@@ -1,9 +1,10 @@
 import 'dart:async';
-import 'dart:math';
+import 'dart:math' show Random, max, min;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:collection/collection.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:quiver/iterables.dart' show range;
 import 'package:rxdart/rxdart.dart';
 
 Future<AudioHandler> initAudioService() async {
@@ -19,24 +20,58 @@ Future<AudioHandler> initAudioService() async {
 }
 
 class PlaylistManager {
-  PlaylistManager() {
-    _listenForEndOfSong();
+  PlaylistManager({this.preloadPaddingCount = 1}) {
+    _loadEmptyPlaylist();
+    _listenForCurrentSongIndexChanges();
   }
 
-  _listenForEndOfSong() {
-    _streamSubscriptions.add(_player.playbackEventStream.listen((playbackEvent) {
-      if (playbackEvent.processingState == ProcessingState.completed && playbackEvent.updatePosition == _player.duration) {
-        Future.microtask(() async {
-          await seekToNext();
-          await player.play();
-        });
+  Future<void> _loadEmptyPlaylist() async {
+    try {
+      await _player.setAudioSource(_subPlaylist);
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+
+  void _listenForCurrentSongIndexChanges() {
+    int? previousIndex = _player.currentIndex;
+    int previousFrontLoadingCount = _playlistFrontLoadingCount;
+    _streamSubscriptions.add(_player.currentIndexStream.listen((index) {
+      _updateMediaItem();
+      _lazyLoadPlaylist();
+
+      // print("currentIndexStream: $index");
+      final previousIndex_ = previousIndex;
+      previousIndex = index;
+      if (previousIndex_ == null || index == null) return;
+      final delta = index - previousIndex_;
+      if (delta.sign == direction.sign) {
+        currentIndex += delta;
+        _playlistFrontLoadingCount += delta;
       }
+      // final previousFrontLoadingCount_ = previousFrontLoadingCount;
+      // previousFrontLoadingCount = _playlistFrontLoadingCount;
+      // if (previousIndex_ == null || index == null) return;
+      // final delta = index - previousIndex_ + previousFrontLoadingCount_ - previousFrontLoadingCount;
+      // print("delta: ${delta}");
+      // currentIndex += delta;
+      // _updatePlayer();
     }));
   }
 
+  /// How many tracks next and previous are loaded into ConcatenatingAudioSource
+  /// * Ex. 3 would look like [`prev3`, `prev2`, `prev1`, `current`, `next1`, `next2`, `next3`]
+  final int preloadPaddingCount;
   final _player = AudioPlayer();
-  final List<MediaItem> _playlist = [];
-  int currentIndex = 0;
+  final _subPlaylist = ConcatenatingAudioSource(
+    children: [],
+    useLazyPreparation: false,
+  );
+  final List<MediaItem> _subPlaylistItems = [];
+  final List<MediaItem> _fullPlaylist = [];
+  int _playlistFrontLoadingCount = 0;
+  static const kDefaultIndex = 10;
+  int currentIndex = kDefaultIndex;
   AudioPlayer get player => _player;
   final BehaviorSubject<MediaItem> mediaItem = BehaviorSubject();
   final List<int> _shuffleIndices = [];
@@ -51,22 +86,88 @@ class PlaylistManager {
   /// previous item.
   int get previousIndex => _getRelativeIndex(-1);
 
+  int get finalIndex => _shuffled ? _shuffleIndices[currentIndex] : currentIndex;
+
   int _getRelativeIndex(int offset) {
-    return max(0, min(currentIndex + offset, _playlist.length - 1));
+    return max(0, min(currentIndex + offset, _fullPlaylist.length - 1));
   }
 
-  setPlaylist(List<MediaItem> mediaItems) {
-    _playlist.clear();
-    _playlist.addAll(mediaItems);
+  setQueue(List<MediaItem> mediaItems) async {
+    _fullPlaylist.clear();
+    _fullPlaylist.addAll(mediaItems);
+    _subPlaylist.clear();
+    _subPlaylistItems.clear();
     setShuffled(_shuffled, true);
-    _updatePlayer();
+    _lazyLoadPlaylist();
   }
 
-  _updatePlayer() async {
-    final finalIndex = _shuffled ? _shuffleIndices[currentIndex] : currentIndex;
-    final newMediaItem = _playlist[finalIndex];
+  bool _updatePlayerRunning = false;
+  bool _updatePlayerWasCalledWhileRunning = false;
+  _updateMediaItem() {
+    if (_subPlaylistItems.isEmpty) return;
+
+    final playerIndex = _player.currentIndex;
+    if (playerIndex == null) return;
+    final newMediaItem = _subPlaylistItems[playerIndex];
     mediaItem.add(newMediaItem);
-    await _player.setAudioSource(_createAudioSource(newMediaItem));
+  }
+
+  _lazyLoadPlaylist() async {
+    // prevent race conditions
+    if (_updatePlayerRunning) {
+      _updatePlayerWasCalledWhileRunning = true;
+      return;
+    }
+    final id = Random().nextDouble();
+    print("start... $id");
+    _updatePlayerRunning = true;
+    final currentIndex_ = currentIndex;
+
+    final playerIndex = _player.currentIndex ?? 0;
+    // preload next
+    final currentNextPadding = max(0, _subPlaylist.length - playerIndex);
+    var nextCountToAdd = preloadPaddingCount - currentNextPadding + 1;
+    if (nextCountToAdd > 0 && _fullPlaylist.isNotEmpty) {
+      for (final iNum in range(nextCountToAdd)) {
+        var mediaItem = _fullPlaylist[iNum.toInt() + currentIndex_];
+        await _subPlaylist.add(_createAudioSource(mediaItem));
+        _subPlaylistItems.add(mediaItem);
+        await Future.microtask(() {});
+      }
+    }
+
+    // preload previous
+    final currentPreviousPadding = _player.currentIndex ?? 0;
+    print("$currentPreviousPadding");
+    final previousCountToAdd = preloadPaddingCount - currentPreviousPadding;
+    // Pad the beginning of the playlist
+    if (previousCountToAdd > 0) {
+      for (int i = 1; i <= previousCountToAdd; i++) {
+        var index = currentIndex_ - currentPreviousPadding - _playlistFrontLoadingCount - i;
+        if (index < 0 || _fullPlaylist.length <= index) continue;
+        var mediaItem = _fullPlaylist[index];
+        final future = _subPlaylist.insert(0, _createAudioSource(mediaItem));
+        _subPlaylistItems.insert(0, mediaItem);
+        _playlistFrontLoadingCount++;
+        print((mediaItem.title,));
+        await future;
+        // seekToPrevious();
+        await Future.microtask(() {});
+      }
+    }
+    _updateMediaItem();
+
+    // prevent race conditions
+    _updatePlayerRunning = false;
+    if (_updatePlayerWasCalledWhileRunning) {
+      _updatePlayerWasCalledWhileRunning = false;
+      Future.microtask(() {
+        print("recur");
+        _lazyLoadPlaylist();
+      });
+    }
+
+    print("end... $id");
   }
 
   UriAudioSource _createAudioSource(MediaItem mediaItem) {
@@ -76,32 +177,29 @@ class PlaylistManager {
     );
   }
 
+  int direction = 0;
   Future<void> seekToNext() async {
-    if (currentIndex != nextIndex) {
-      currentIndex = nextIndex;
-      await _updatePlayer();
-    }
+    direction = 1;
+    await _player.seekToNext();
   }
 
   Future<void> seekToPrevious() async {
-    if (currentIndex != previousIndex) {
-      currentIndex = previousIndex;
-      _updatePlayer();
-    }
+    direction = -1;
+    await _player.seekToPrevious();
   }
 
   void setShuffled(bool newShuffled, [bool? force]) {
     if (newShuffled == _shuffled && force != true) return;
     if (newShuffled) {
-      final indices = List.generate(_playlist.length, (index) => index).where((element) => element != currentIndex).toList();
+      final indices = List.generate(_fullPlaylist.length, (index) => index).where((element) => element != currentIndex).toList();
       shuffle(indices);
       _shuffleIndices.clear();
       _shuffleIndices.addAll(indices..insert(0, currentIndex));
-      currentIndex = 0;
+      currentIndex = kDefaultIndex;
     } else if (_shuffleIndices.isNotEmpty) {
       currentIndex = _shuffleIndices[currentIndex];
     } else {
-      currentIndex = 0;
+      currentIndex = kDefaultIndex;
     }
     _shuffled = newShuffled;
   }
@@ -192,7 +290,7 @@ class MyAudioHandler extends BaseAudioHandler {
     // notify system
     final newQueue = mediaItems;
     queue.add(newQueue);
-    _playlistManager.setPlaylist(mediaItems);
+    _playlistManager.setQueue(mediaItems);
   }
 
   @override
