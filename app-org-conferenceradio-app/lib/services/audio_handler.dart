@@ -302,7 +302,7 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToPrevious() async {
-    if (_playlistManager.player.position.inSeconds > 5) {
+    if (_playlistManager.player.position.inSeconds > 5 || _playlistManager.currentIndex == 0) {
       return _playlistManager.player.seek(Duration.zero);
     } else {
       return _playlistManager.seekToPrevious();
