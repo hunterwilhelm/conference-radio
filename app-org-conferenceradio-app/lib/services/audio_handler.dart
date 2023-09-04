@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math' show Random, max, min;
+import 'dart:math' show max, min;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:collection/collection.dart';
@@ -20,7 +20,7 @@ Future<AudioHandler> initAudioService() async {
 }
 
 class PlaylistManager {
-  PlaylistManager({this.preloadPaddingCount = 1}) {
+  PlaylistManager({this.preloadPaddingCount = 3}) {
     _loadEmptyPlaylist();
     _listenForCurrentSongIndexChanges();
   }
@@ -108,7 +108,6 @@ class PlaylistManager {
       _updatePlayerWasCalledWhileRunning = true;
       return;
     }
-    final id = Random().nextDouble();
     _updatePlayerRunning = true;
     final currentIndex_ = currentIndex;
 
@@ -254,7 +253,8 @@ class MyAudioHandler extends BaseAudioHandler {
 
   void _listenForCurrentSongIndexChanges() {
     streamSubscriptions.add(_playlistManager.mediaItem.listen((newMediaItem) {
-      mediaItem.add(newMediaItem);
+      final newMediaItemWithDuration = newMediaItem.copyWith(duration: _playlistManager.player.duration);
+      mediaItem.add(newMediaItemWithDuration);
     }));
   }
 
