@@ -91,6 +91,7 @@ class PlaylistManager {
     _listenForCurrentSongIndexChanges();
   }
 
+  /// Used for loading the tracks. This will reset the current index and position.
   setQueue(List<MediaItem> mediaItems) async {
     _fullPlaylist.clear();
     _fullPlaylist.addAll(mediaItems);
@@ -112,6 +113,12 @@ class PlaylistManager {
     await _player.seekToPrevious();
   }
 
+  /// Use to shuffle the queue without losing the current media item
+  ///
+  /// If shuffled:
+  ///   This will reset current queue so this current song will be first
+  /// If not shuffled:
+  ///   This will restore the regular queue so next/previous will go continue where you are
   void setShuffled(bool newShuffled, [bool? force]) {
     if (newShuffled == _shuffled && force != true) return;
     if (newShuffled) {
