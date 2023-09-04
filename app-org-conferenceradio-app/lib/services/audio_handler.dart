@@ -20,12 +20,115 @@ Future<AudioHandler> initAudioService() async {
 }
 
 class PlaylistManager {
+  final _player = AudioPlayer();
+  final _subPlaylist = ConcatenatingAudioSource(
+    children: [],
+    useLazyPreparation: false, // I want it to pre-cache everything I put in this playlist.
+  );
+
+  /// A copy of the media items so we can access them later
+  final List<MediaItem> _subPlaylistItems = [];
+
+  /// The full list of media items to pull from
+  final List<MediaItem> _fullPlaylist = [];
+
+  /// Used for keeping track of how many tracks are in front of the current index of the player.
+  int _playlistFrontLoadingCount = 0;
+
+  /// Change this if you want the index to not start at the beginning
+  static const kDefaultIndex = 0;
+
+  /// Keeps track of the current index of the _fullPlaylist
+  int _currentFullPlaylistIndex = kDefaultIndex;
+
+  /// Used for cleaning up the subscriptions when disposed
+  final List<StreamSubscription> _streamSubscriptions = [];
+
+  /// Used for preventing race conditions in the _lazyLoadPlaylist
+  bool _updatePlayerRunning = false;
+
+  /// Used for preventing race conditions in the _lazyLoadPlaylist
+  bool _updatePlayerWasCalledWhileRunning = false;
+
+  /// Used for getting the index of the current item if it is shuffled or not
+  int get _finalIndex => _shuffled ? _shuffleIndices[_currentFullPlaylistIndex] : _currentFullPlaylistIndex;
+
+  /// Used for keeping track of the shuffle order
+  final List<int> _shuffleIndices = [];
+
+  /// Switches between the shuffleIndices order and regular indices
+  bool _shuffled = false;
+
+  /// Used for not skipping too many times if the [_subPlaylist] isn't done loading yet.
+  int _directionOfSkipTo = 0;
+
+  // PUBLIC VARS / GETTERS
+
+  /// Notifies the system of the current media item
+  final BehaviorSubject<MediaItem> mediaItem = BehaviorSubject();
+
+  /// Use this to get the live data of what the state is of the player
+  ///
+  /// Don't perform actions like skip on this object because there is extra logic
+  /// attached to the functions in this class. For example, use [seekToNext] instead of [player.seekToNext]
+  AudioPlayer get player => _player;
+
+  /// The index of the next item to be played
+  int get nextIndex => _getRelativeIndex(1);
+
+  /// The index of the previous item in play order
+  int get previousIndex => _getRelativeIndex(-1);
+
+  /// The index of the current index.
+  int get currentIndex => _currentFullPlaylistIndex;
+
+  /// How many tracks next and previous are loaded into ConcatenatingAudioSource
+  /// * Ex. 3 would look like [`prev3`, `prev2`, `prev1`, `current`, `next1`, `next2`, `next3`]
+  final int preloadPaddingCount;
+
   PlaylistManager({this.preloadPaddingCount = 3}) {
-    _loadEmptyPlaylist();
+    _attachAudioSourceToPlayer();
     _listenForCurrentSongIndexChanges();
   }
 
-  Future<void> _loadEmptyPlaylist() async {
+  setQueue(List<MediaItem> mediaItems) async {
+    _fullPlaylist.clear();
+    _fullPlaylist.addAll(mediaItems);
+    _subPlaylist.clear();
+    _subPlaylistItems.clear();
+    setShuffled(_shuffled, true);
+    _lazyLoadPlaylist();
+  }
+
+  /// Use this instead of [player.seekToNext]
+  Future<void> seekToNext() async {
+    _directionOfSkipTo = 1;
+    await _player.seekToNext();
+  }
+
+  /// Use this instead of [player.seekToPrevious]
+  Future<void> seekToPrevious() async {
+    _directionOfSkipTo = -1;
+    await _player.seekToPrevious();
+  }
+
+  void setShuffled(bool newShuffled, [bool? force]) {
+    if (newShuffled == _shuffled && force != true) return;
+    if (newShuffled) {
+      final indices = List.generate(_fullPlaylist.length, (index) => index).where((element) => element != _currentFullPlaylistIndex).toList();
+      shuffle(indices);
+      _shuffleIndices.clear();
+      _shuffleIndices.addAll(indices..insert(0, _currentFullPlaylistIndex));
+      _currentFullPlaylistIndex = kDefaultIndex;
+    } else if (_shuffleIndices.isNotEmpty) {
+      _currentFullPlaylistIndex = _shuffleIndices[_currentFullPlaylistIndex];
+    } else {
+      _currentFullPlaylistIndex = kDefaultIndex;
+    }
+    _shuffled = newShuffled;
+  }
+
+  Future<void> _attachAudioSourceToPlayer() async {
     try {
       await _player.setAudioSource(_subPlaylist);
     } catch (e) {
@@ -38,66 +141,28 @@ class PlaylistManager {
     _streamSubscriptions.add(_player.currentIndexStream.listen((index) {
       _updateMediaItem();
       _lazyLoadPlaylist();
+
       final previousIndex_ = previousIndex;
       previousIndex = index;
       if (previousIndex_ == null || index == null) return;
       final delta = index - previousIndex_;
-      if (delta.sign == direction.sign) {
-        currentIndex += delta;
+
+      if (delta.sign == _directionOfSkipTo.sign) {
+        _currentFullPlaylistIndex += delta;
         _playlistFrontLoadingCount += delta;
       }
     }));
   }
 
-  /// How many tracks next and previous are loaded into ConcatenatingAudioSource
-  /// * Ex. 3 would look like [`prev3`, `prev2`, `prev1`, `current`, `next1`, `next2`, `next3`]
-  final int preloadPaddingCount;
-  final _player = AudioPlayer();
-  final _subPlaylist = ConcatenatingAudioSource(
-    children: [],
-    useLazyPreparation: false,
-  );
-  final List<MediaItem> _subPlaylistItems = [];
-  final List<MediaItem> _fullPlaylist = [];
-  int _playlistFrontLoadingCount = 0;
-  static const kDefaultIndex = 10;
-  int currentIndex = kDefaultIndex;
-  AudioPlayer get player => _player;
-  final BehaviorSubject<MediaItem> mediaItem = BehaviorSubject();
-  final List<int> _shuffleIndices = [];
-  final List<StreamSubscription> _streamSubscriptions = [];
-  bool _shuffled = false;
-
-  /// The index of the next item to be played, or `null` if there is no next
-  /// item.
-  int get nextIndex => _getRelativeIndex(1);
-
-  /// The index of the previous item in play order, or `null` if there is no
-  /// previous item.
-  int get previousIndex => _getRelativeIndex(-1);
-
-  int get finalIndex => _shuffled ? _shuffleIndices[currentIndex] : currentIndex;
-
   int _getRelativeIndex(int offset) {
-    return max(0, min(currentIndex + offset, _fullPlaylist.length - 1));
+    return max(0, min(_currentFullPlaylistIndex + offset, _fullPlaylist.length - 1));
   }
 
-  setQueue(List<MediaItem> mediaItems) async {
-    _fullPlaylist.clear();
-    _fullPlaylist.addAll(mediaItems);
-    _subPlaylist.clear();
-    _subPlaylistItems.clear();
-    setShuffled(_shuffled, true);
-    _lazyLoadPlaylist();
-  }
-
-  bool _updatePlayerRunning = false;
-  bool _updatePlayerWasCalledWhileRunning = false;
   _updateMediaItem() {
     if (_subPlaylistItems.isEmpty) return;
-
     final playerIndex = _player.currentIndex;
     if (playerIndex == null) return;
+
     final newMediaItem = _subPlaylistItems[playerIndex];
     mediaItem.add(newMediaItem);
   }
@@ -109,10 +174,11 @@ class PlaylistManager {
       return;
     }
     _updatePlayerRunning = true;
-    final currentIndex_ = currentIndex;
 
+    final currentIndex_ = _currentFullPlaylistIndex;
     final playerIndex = _player.currentIndex ?? 0;
-    // preload next
+
+    // Pad/pre-cache the ending of the playlist
     final currentNextPadding = max(0, _subPlaylist.length - playerIndex);
     var nextCountToAdd = preloadPaddingCount - currentNextPadding + 1;
     if (nextCountToAdd > 0 && _fullPlaylist.isNotEmpty) {
@@ -124,10 +190,9 @@ class PlaylistManager {
       }
     }
 
-    // preload previous
+    // Pad/pre-cache the beginning of the playlist
     final currentPreviousPadding = _player.currentIndex ?? 0;
     final previousCountToAdd = preloadPaddingCount - currentPreviousPadding;
-    // Pad the beginning of the playlist
     if (previousCountToAdd > 0) {
       for (int i = 1; i <= previousCountToAdd; i++) {
         var index = currentIndex_ - currentPreviousPadding - _playlistFrontLoadingCount - i;
@@ -140,6 +205,7 @@ class PlaylistManager {
         await Future.microtask(() {});
       }
     }
+
     _updateMediaItem();
 
     // prevent race conditions
@@ -159,33 +225,6 @@ class PlaylistManager {
     );
   }
 
-  int direction = 0;
-  Future<void> seekToNext() async {
-    direction = 1;
-    await _player.seekToNext();
-  }
-
-  Future<void> seekToPrevious() async {
-    direction = -1;
-    await _player.seekToPrevious();
-  }
-
-  void setShuffled(bool newShuffled, [bool? force]) {
-    if (newShuffled == _shuffled && force != true) return;
-    if (newShuffled) {
-      final indices = List.generate(_fullPlaylist.length, (index) => index).where((element) => element != currentIndex).toList();
-      shuffle(indices);
-      _shuffleIndices.clear();
-      _shuffleIndices.addAll(indices..insert(0, currentIndex));
-      currentIndex = kDefaultIndex;
-    } else if (_shuffleIndices.isNotEmpty) {
-      currentIndex = _shuffleIndices[currentIndex];
-    } else {
-      currentIndex = kDefaultIndex;
-    }
-    _shuffled = newShuffled;
-  }
-
   Future<void> dispose() async {
     for (final subscription in _streamSubscriptions) {
       await subscription.cancel();
@@ -196,9 +235,8 @@ class PlaylistManager {
 }
 
 class MyAudioHandler extends BaseAudioHandler {
-  int index = 0;
   final _playlistManager = PlaylistManager();
-  final List<StreamSubscription> streamSubscriptions = [];
+  final List<StreamSubscription> _streamSubscriptions = [];
 
   MyAudioHandler() {
     _notifyAudioHandlerAboutPlaybackEvents();
@@ -207,7 +245,7 @@ class MyAudioHandler extends BaseAudioHandler {
   }
 
   void _notifyAudioHandlerAboutPlaybackEvents() {
-    streamSubscriptions.add(_playlistManager.player.playbackEventStream.listen((PlaybackEvent event) {
+    _streamSubscriptions.add(_playlistManager.player.playbackEventStream.listen((PlaybackEvent event) {
       final playing = _playlistManager.player.playing;
       playbackState.add(playbackState.value.copyWith(
         controls: [
@@ -243,7 +281,7 @@ class MyAudioHandler extends BaseAudioHandler {
   }
 
   void _listenForDurationChanges() {
-    streamSubscriptions.add(_playlistManager.player.durationStream.listen((duration) {
+    _streamSubscriptions.add(_playlistManager.player.durationStream.listen((duration) {
       final oldMediaItem = _playlistManager.mediaItem.valueOrNull;
       if (oldMediaItem == null) return;
       final newMediaItem = oldMediaItem.copyWith(duration: duration);
@@ -252,7 +290,7 @@ class MyAudioHandler extends BaseAudioHandler {
   }
 
   void _listenForCurrentSongIndexChanges() {
-    streamSubscriptions.add(_playlistManager.mediaItem.listen((newMediaItem) {
+    _streamSubscriptions.add(_playlistManager.mediaItem.listen((newMediaItem) {
       final newMediaItemWithDuration = newMediaItem.copyWith(duration: _playlistManager.player.duration);
       mediaItem.add(newMediaItemWithDuration);
     }));
@@ -322,10 +360,10 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> customAction(String name, [Map<String, dynamic>? extras]) async {
     if (name == 'dispose') {
-      for (final subscription in streamSubscriptions) {
+      for (final subscription in _streamSubscriptions) {
         await subscription.cancel();
       }
-      streamSubscriptions.clear();
+      _streamSubscriptions.clear();
 
       await _playlistManager.dispose();
       super.stop();

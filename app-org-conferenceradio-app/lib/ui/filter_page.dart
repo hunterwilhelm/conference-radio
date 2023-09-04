@@ -1,6 +1,7 @@
 import 'package:conference_radio_flutter/constants/style_list.dart';
 import 'package:conference_radio_flutter/notifiers/filter_notifier.dart';
 import 'package:conference_radio_flutter/ui/widgets/custom_app_bar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -129,18 +130,15 @@ class PickConference extends HookWidget {
     final selected = useState<YearMonth>(YearMonth(2023, 10));
 
     final options = generateMonthsBetween(
-      start: YearMonth(2023, 10),
-      end: YearMonth(1971, 4),
+      start: const YearMonth(2023, 10),
+      end: const YearMonth(1971, 4),
     );
     return AlertDialog(
       title: const Text("Pick Conference"),
       content: SizedBox(
         height: 200,
-        child: ListWheelScrollView(
+        child: CupertinoPicker(
           itemExtent: 50,
-          diameterRatio: 100,
-          useMagnifier: true,
-          magnification: 1.2,
           children: [...options].map((option) => buildOptionItem(option.longLabel)).toList(),
           onSelectedItemChanged: (index) {
             selected.value = options[index];
@@ -149,12 +147,15 @@ class PickConference extends HookWidget {
       ),
       actions: <Widget>[
         Center(
-          child: ElevatedButton(
-            onPressed: () {
-              onSubmit(selected.value);
-              Navigator.of(context).pop(); // Close the dialog
-            },
-            child: const Text('Select'),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                onSubmit(selected.value);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Select'),
+            ),
           ),
         ),
       ],
