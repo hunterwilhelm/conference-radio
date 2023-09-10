@@ -1,11 +1,11 @@
 import 'package:conference_radio_flutter/constants/style_list.dart';
 import 'package:conference_radio_flutter/notifiers/filter_notifier.dart';
+import 'package:conference_radio_flutter/routes.dart';
 import 'package:conference_radio_flutter/ui/widgets/custom_app_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
-import '../main.dart';
 import '../page_manager.dart';
 import '../services/service_locator.dart';
 

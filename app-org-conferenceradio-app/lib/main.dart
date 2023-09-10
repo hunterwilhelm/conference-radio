@@ -1,3 +1,4 @@
+import 'package:conference_radio_flutter/routes.dart';
 import 'package:conference_radio_flutter/ui/filter_page.dart';
 import 'package:conference_radio_flutter/ui/home_page.dart';
 import 'package:conference_radio_flutter/ui/welcome_begin_page.dart';
@@ -69,15 +70,4 @@ class AppRouter {
     );
     return router;
   }
-}
-
-enum Routes {
-  welcomeLanguagePage,
-  welcomeBeginPage,
-  homePage,
-  filterPage,
-}
-
-extension PathOnRoutesExtension on Routes {
-  String get path => "/${toString()}";
 }

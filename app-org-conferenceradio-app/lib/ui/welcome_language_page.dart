@@ -1,10 +1,9 @@
 import 'package:conference_radio_flutter/constants/asset_names.dart';
 import 'package:conference_radio_flutter/constants/style_list.dart';
+import 'package:conference_radio_flutter/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
-
-import '../main.dart';
 
 class WelcomeLanguagePage extends StatelessWidget {
   static const route = Routes.welcomeLanguagePage;

@@ -1,5 +1,6 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:conference_radio_flutter/routes.dart';
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/style_list.dart';
-import '../main.dart';
 import '../notifiers/filter_notifier.dart';
 import '../notifiers/play_button_notifier.dart';
 import '../notifiers/progress_notifier.dart';
