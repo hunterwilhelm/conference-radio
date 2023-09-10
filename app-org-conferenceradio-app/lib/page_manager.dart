@@ -1,5 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:collection/collection.dart';
 import 'package:conference_radio_flutter/services/talks_db_service.dart';
 import 'package:conference_radio_flutter/ui/filter_page.dart';
 import 'package:flutter/foundation.dart';
@@ -18,7 +19,6 @@ class PageManager {
   final playlistNotifier = ValueNotifier<List<Talk>>([]);
   final progressNotifier = ProgressNotifier();
   final repeatButtonNotifier = RepeatButtonNotifier();
-  final isFirstSongNotifier = ValueNotifier<bool>(true);
   final playButtonNotifier = PlayButtonNotifier();
   final isLastSongNotifier = ValueNotifier<bool>(true);
   final isShuffleModeEnabledNotifier = ValueNotifier<bool>(false);
@@ -92,7 +92,7 @@ class PageManager {
   void _listenToChangesInSong() {
     _audioHandler.mediaItem.listen((mediaItem) {
       if (mediaItem != null) {
-        final talk = playlistNotifier.value.firstWhere((element) => element.talkId.toString() == mediaItem.id);
+        final talk = playlistNotifier.value.firstWhereOrNull((element) => element.talkId.toString() == mediaItem.id);
         currentTalkNotifier.value = talk;
       }
       _updateSkipButtons();
@@ -103,10 +103,8 @@ class PageManager {
     final mediaItem = _audioHandler.mediaItem.value;
     final playlist = _audioHandler.queue.value;
     if (playlist.length < 2 || mediaItem == null) {
-      isFirstSongNotifier.value = true;
       isLastSongNotifier.value = true;
     } else {
-      isFirstSongNotifier.value = playlist.first == mediaItem;
       isLastSongNotifier.value = playlist.last == mediaItem;
     }
   }

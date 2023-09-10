@@ -34,7 +34,7 @@ class FilterPage extends StatelessWidget {
                           child: TextButton(
                             label: "- ${filter.start.longLabel} -",
                             onClick: () {
-                              showOptions(context, (newYearMonth) {
+                              showOptions(context, filter.start, (newYearMonth) {
                                 pageManager.updateFilterStart(newYearMonth);
                               });
                             },
@@ -58,7 +58,7 @@ class FilterPage extends StatelessWidget {
                           child: TextButton(
                             label: "- ${filter.end.longLabel} -",
                             onClick: () {
-                              showOptions(context, (newYearMonth) {
+                              showOptions(context, filter.end, (newYearMonth) {
                                 pageManager.updateFilterEnd(newYearMonth);
                               });
                             },
@@ -109,19 +109,29 @@ class TextButton extends StatelessWidget {
   }
 }
 
-void showOptions(BuildContext context, void Function(YearMonth value) onSubmit) {
+void showOptions(
+  BuildContext context,
+  YearMonth defaultYearMonth,
+  void Function(YearMonth value) onSubmit,
+) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return PickConference(onSubmit: onSubmit);
+      return PickConference(
+        onSubmit: onSubmit,
+        defaultYearMonth: defaultYearMonth,
+      );
     },
   );
 }
 
 class PickConference extends HookWidget {
   final void Function(YearMonth value) onSubmit;
+
+  final YearMonth defaultYearMonth;
   const PickConference({
     super.key,
+    required this.defaultYearMonth,
     required this.onSubmit,
   });
 

@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 class FilterNotifier extends ValueNotifier<Filter> {
   FilterNotifier() : super(_initialValue);
-  static const _initialValue = Filter(YearMonth(2023, 4), YearMonth(2000, 5));
+  static const _initialValue = Filter(YearMonth(2023, 4), YearMonth(2000, 10));
 }
 
 class Filter {

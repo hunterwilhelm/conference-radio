@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' show max, min;
 
 import 'package:audio_service/audio_service.dart';
-import 'package:collection/collection.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:quiver/iterables.dart' show range;
 import 'package:rxdart/rxdart.dart';
@@ -50,15 +49,6 @@ class PlaylistManager {
   /// Used for preventing race conditions in the _lazyLoadPlaylist
   bool _updatePlayerWasCalledWhileRunning = false;
 
-  /// Used for getting the index of the current item if it is shuffled or not
-  int get _finalIndex => _shuffled ? _shuffleIndices[_currentFullPlaylistIndex] : _currentFullPlaylistIndex;
-
-  /// Used for keeping track of the shuffle order
-  final List<int> _shuffleIndices = [];
-
-  /// Switches between the shuffleIndices order and regular indices
-  bool _shuffled = false;
-
   /// Used for not skipping too many times if the [_subPlaylist] isn't done loading yet.
   int _directionOfSkipTo = 0;
 
@@ -97,7 +87,6 @@ class PlaylistManager {
     _fullPlaylist.addAll(mediaItems);
     _subPlaylist.clear();
     _subPlaylistItems.clear();
-    setShuffled(_shuffled, true);
     _lazyLoadPlaylist();
   }
 
@@ -111,28 +100,6 @@ class PlaylistManager {
   Future<void> seekToPrevious() async {
     _directionOfSkipTo = -1;
     await _player.seekToPrevious();
-  }
-
-  /// Use to shuffle the queue without losing the current media item
-  ///
-  /// If shuffled:
-  ///   This will reset current queue so this current song will be first
-  /// If not shuffled:
-  ///   This will restore the regular queue so next/previous will go continue where you are
-  void setShuffled(bool newShuffled, [bool? force]) {
-    if (newShuffled == _shuffled && force != true) return;
-    if (newShuffled) {
-      final indices = List.generate(_fullPlaylist.length, (index) => index).where((element) => element != _currentFullPlaylistIndex).toList();
-      shuffle(indices);
-      _shuffleIndices.clear();
-      _shuffleIndices.addAll(indices..insert(0, _currentFullPlaylistIndex));
-      _currentFullPlaylistIndex = kDefaultIndex;
-    } else if (_shuffleIndices.isNotEmpty) {
-      _currentFullPlaylistIndex = _shuffleIndices[_currentFullPlaylistIndex];
-    } else {
-      _currentFullPlaylistIndex = kDefaultIndex;
-    }
-    _shuffled = newShuffled;
   }
 
   Future<void> _attachAudioSourceToPlayer() async {
@@ -361,7 +328,7 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
-    _playlistManager.setShuffled(shuffleMode != AudioServiceShuffleMode.none);
+    throw UnimplementedError("setShuffleMode");
   }
 
   @override
