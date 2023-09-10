@@ -137,18 +137,20 @@ class PickConference extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selected = useState<YearMonth>(YearMonth(2023, 10));
+    final selected = useState<YearMonth>(defaultYearMonth);
 
     final options = generateMonthsBetween(
       start: const YearMonth(2023, 10),
       end: const YearMonth(1971, 4),
     );
+    final defaultIndex = options.indexWhere((element) => element == defaultYearMonth);
     return AlertDialog(
       title: const Text("Pick Conference"),
       content: SizedBox(
         height: 200,
         child: CupertinoPicker(
           itemExtent: 50,
+          scrollController: FixedExtentScrollController(initialItem: defaultIndex),
           children: [...options].map((option) => buildOptionItem(option.longLabel)).toList(),
           onSelectedItemChanged: (index) {
             selected.value = options[index];
@@ -179,6 +181,12 @@ class YearMonth {
   DateTime get date => DateTime(year, month);
   final int year;
   final int month;
+
+  @override
+  bool operator ==(Object other) => identical(this, other) || other is YearMonth && runtimeType == other.runtimeType && year == other.year && month == other.month;
+
+  @override
+  int get hashCode => year.hashCode ^ month.hashCode;
 
   const YearMonth(this.year, this.month);
 }
