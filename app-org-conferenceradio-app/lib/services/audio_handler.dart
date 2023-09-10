@@ -19,7 +19,10 @@ Future<AudioHandler> initAudioService() async {
 
 class PlaylistManager {
   final _player = AudioPlayer();
-  final _audioSource = ConcatenatingAudioSource(children: []);
+  final _audioSource = ConcatenatingAudioSource(
+    children: [],
+    useLazyPreparation: false,
+  );
 
   /// Shuffle indexes to pull from
   final List<int> _shuffleIndexes = [];
@@ -38,6 +41,8 @@ class PlaylistManager {
   /// Used for keeping track of both shuffled and normal order
   int _currentIndex = kDefaultIndex;
   int get currentIndex => _currentIndex;
+
+  int get _playerIndex => _player.currentIndex ?? 0;
 
   // PUBLIC VARS / GETTERS
 
@@ -64,6 +69,7 @@ class PlaylistManager {
   Future<void> _attachAudioSourceToPlayer() async {
     try {
       await _player.setAudioSource(_audioSource);
+      _player.setLoopMode(LoopMode.off);
     } catch (e) {
       print("Error: $e");
     }
@@ -74,8 +80,12 @@ class PlaylistManager {
       if (index == null) return;
       if (_ignoreIndexChangedOnce) {
         _ignoreIndexChangedOnce = false;
-      } else {
-        _updatePlayer();
+        return;
+      }
+      if (index == 1) {
+        _updatePlayer(offset: 1);
+      } else if (index == 2) {
+        _updatePlayer(offset: -1);
       }
     }));
   }
@@ -90,14 +100,12 @@ class PlaylistManager {
 
   /// Use this instead of [player.seekToNext]
   Future<void> seekToNext() async {
-    _ignoreIndexChangedOnce = true;
-    await _updatePlayer(offset: 1);
+    _player.seek(Duration.zero, index: _playerIndex + 1);
   }
 
   /// Use this instead of [player.seekToPrevious]
   Future<void> seekToPrevious() async {
-    _ignoreIndexChangedOnce = true;
-    await _updatePlayer(offset: -1);
+    _player.seek(Duration.zero, index: _playerIndex + 2);
   }
 
   int _getRelativeIndex(int offset) {
@@ -105,27 +113,33 @@ class PlaylistManager {
   }
 
   Future<void> _updatePlayer({int offset = 0}) async {
-    final newIndex = max(0, min(offset + _currentIndex, _fullPlaylist.length - 1));
-    if (newIndex == currentIndex && _audioSource.length != 0) return;
+    final newIndex = _getRelativeIndex(offset);
+
+    final newMediaItemCurrent = _fullPlaylist[newIndex];
+    mediaItem.add(newMediaItemCurrent);
+
+    if (newIndex == _currentIndex && _audioSource.length != 0) return;
     _currentIndex = newIndex;
 
-    final newMediaItemCurrent = _fullPlaylist[_getRelativeIndex(0)];
     final newMediaItemNext = _fullPlaylist[_getRelativeIndex(1)];
-
-    mediaItem.add(newMediaItemCurrent);
+    final newMediaItemPrevious = _fullPlaylist[_getRelativeIndex(-1)];
     if (_audioSource.length == 0) {
       await _audioSource.add(_createAudioSource(newMediaItemCurrent));
     }
 
-    if (_player.currentIndex == _audioSource.length - 1) {
-      await _audioSource.add(_createAudioSource(newMediaItemNext));
+    if (offset == 1) {
+      _audioSource.removeAt(2);
+      _ignoreIndexChangedOnce = true;
+      _audioSource.removeAt(0);
+    } else if (offset == -1) {
+      _ignoreIndexChangedOnce = true;
+      await _audioSource.removeAt(1);
+      _ignoreIndexChangedOnce = true;
+      _audioSource.removeAt(0);
     }
 
-    if (offset == 1) {
-      await _player.seekToNext();
-    } else if (offset == -1) {
-      await _player.seekToPrevious();
-    }
+    await _audioSource.add(_createAudioSource(newMediaItemNext));
+    await _audioSource.add(_createAudioSource(newMediaItemPrevious));
   }
 
   UriAudioSource _createAudioSource(MediaItem mediaItem) {
