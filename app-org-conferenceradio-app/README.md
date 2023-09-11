@@ -22,9 +22,9 @@
 
 ### Todos Release 2
 #### Requirements to begin: 30 monthly active users
+ - [ ] feature: fix issue when you hit shuffle while a talk is playing, it restarts the talk
  - [ ] feature: sleep timer
  - [ ] feature: play a talk from your bookmarks
- - [ ] feature: export data
  - [ ] feature: TBD categories/folders/playlists/topics
  - [ ] feature: add art
  - [ ] feature: donate link
@@ -34,6 +34,7 @@
  
 ### Todos Release 3
 #### Requirements to begin: 100 monthly active users & 1 donation
+ - [ ] feature: jump to the right paragraph based on where you are in the talk
  - [ ] feature: export data
  - [ ] feature: TBD categories/folders/playlists
  - [ ] feature: add art
