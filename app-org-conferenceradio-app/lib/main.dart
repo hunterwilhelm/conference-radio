@@ -1,4 +1,5 @@
 import 'package:conference_radio_flutter/routes.dart';
+import 'package:conference_radio_flutter/ui/bookmarks_page.dart';
 import 'package:conference_radio_flutter/ui/filter_page.dart';
 import 'package:conference_radio_flutter/ui/home_page.dart';
 import 'package:conference_radio_flutter/ui/welcome_begin_page.dart';
@@ -65,6 +66,10 @@ class AppRouter {
         GoRoute(
           path: FilterPage.route.path,
           builder: (context, state) => const FilterPage(),
+        ),
+        GoRoute(
+          path: BookmarksPage.route.path,
+          builder: (context, state) => const BookmarksPage(),
         ),
       ],
     );

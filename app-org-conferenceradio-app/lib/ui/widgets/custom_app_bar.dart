@@ -28,29 +28,26 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(11.0),
-            child: Stack(
-              children: [
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Icon(FluentIcons.chevron_left_12_regular),
-                ),
-                Center(
-                  child: Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF818181),
-                      fontSize: 25.67,
-                      fontFamily: 'REM',
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 2.05,
-                    ),
+          child: Stack(
+            children: [
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Icon(FluentIcons.chevron_left_12_regular),
+              ),
+              Center(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFF818181),
+                    fontSize: 25.67,
+                    fontFamily: 'REM',
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 2.05,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

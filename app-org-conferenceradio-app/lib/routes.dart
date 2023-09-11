@@ -3,6 +3,7 @@ enum Routes {
   welcomeBeginPage,
   homePage,
   filterPage,
+  bookmarksPage,
 }
 
 extension PathOnRoutesExtension on Routes {

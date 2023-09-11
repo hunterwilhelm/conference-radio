@@ -1,5 +1,6 @@
 import 'package:conference_radio_flutter/notifiers/filter_notifier.dart';
 import 'package:conference_radio_flutter/ui/filter_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 
 _onCreate(Database db, int version) async {
@@ -18,7 +19,7 @@ _onCreate(Database db, int version) async {
 )""");
   await db.execute("""CREATE TABLE `bookmarks` (
     `talk_id` INTEGER PRIMARY KEY,
-    `created_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `created_date` DATETIME DEFAULT CURRENT_TIMESTAMP
 )""");
 }
 
@@ -114,15 +115,20 @@ ORDER BY year ASC, month ASC, session_order ASC, talk_order ASC
   }
 
   Future<List<Bookmark>> getBookmarkedTalks({String lang = "eng"}) async {
-    final results = await db.rawQuery("""
+    try {
+      final results = await db.rawQuery("""
 SELECT * FROM bookmarks
 INNER JOIN talks ON talks.id = bookmarks.talk_id
 WHERE talks.`lang` = ? 
 ORDER BY bookmarks.created_date DESC
 """, [
-      lang,
-    ]);
-    return results.map((map) => Bookmark.fromMap(map)).toList();
+        lang,
+      ]);
+      return results.map((map) => Bookmark.fromMap(map)).toList();
+    } catch (e) {
+      debugPrint(e.toString());
+      return [];
+    }
   }
 
   Future<void> saveBookmark(int talkId, bool bookmarked) async {
@@ -156,7 +162,7 @@ class Bookmark {
 
   static Bookmark fromMap(Map<String, Object?> map) {
     return Bookmark._(
-      createdDate: map["created_date"] as DateTime,
+      createdDate: DateTime.parse(map["created_date"] as String),
       talk: Talk.fromMap(map),
     );
   }

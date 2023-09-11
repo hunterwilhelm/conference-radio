@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:conference_radio_flutter/routes.dart';
+import 'package:conference_radio_flutter/ui/bookmarks_page.dart';
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -86,7 +87,9 @@ class TopBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              context.push(BookmarksPage.route.path);
+            },
             icon: const Icon(FluentIcons.library_16_filled),
             color: StyleList.bottomRowSecondaryButtonColor,
           ),
