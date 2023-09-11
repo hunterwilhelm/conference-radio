@@ -154,8 +154,6 @@ class PlaylistManager {
 
     final newMediaItemCurrent = _fullPlaylist[_getFinalIndex(0)];
     mediaItem.add(newMediaItemCurrent);
-    print(newMediaItemCurrent);
-    print(_getFinalIndex(0));
 
     if (newIndex == oldIndex && _audioSource.length != 0 && !force) return;
 

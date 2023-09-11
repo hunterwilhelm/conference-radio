@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:conference_radio_flutter/routes.dart';
@@ -448,41 +450,94 @@ class PreviousSongButton extends StatelessWidget {
 }
 
 class PlayButton extends StatelessWidget {
-  const PlayButton({Key? key}) : super(key: key);
+  const PlayButton({
+    super.key,
+  });
+
   @override
   Widget build(BuildContext context) {
     final pageManager = getIt<PageManager>();
-    return ValueListenableBuilder<ButtonState>(
+    return ValueListenableBuilder(
       valueListenable: pageManager.playButtonNotifier,
-      builder: (_, value, __) {
-        switch (value) {
-          case ButtonState.loading:
-            return Container(
-              margin: const EdgeInsets.all(8.0),
-              width: 80.0,
-              height: 80.0,
-              child: const CircularProgressIndicator(),
-            );
-          case ButtonState.paused:
-            return IconButton(
-              icon: const Icon(
-                FluentIcons.play_circle_20_filled,
-                color: StyleList.buttonColor,
-              ),
-              iconSize: 80.0,
-              onPressed: pageManager.play,
-            );
-          case ButtonState.playing:
-            return IconButton(
-              icon: const Icon(
-                FluentIcons.pause_circle_20_filled,
-                color: StyleList.buttonColor,
-              ),
-              iconSize: 80.0,
-              onPressed: pageManager.pause,
-            );
-        }
+      builder: (context, value, child) {
+        final isPaused = value == ButtonState.paused;
+        return PlayPauseButton(
+          isLoading: value == ButtonState.loading,
+          isPaused: isPaused,
+          onTap: isPaused ? pageManager.play : pageManager.pause,
+        );
       },
+    );
+  }
+}
+
+class PlayPauseButton extends HookWidget {
+  final bool isPaused;
+  final bool isLoading;
+  final void Function() onTap;
+
+  const PlayPauseButton({
+    super.key,
+    required this.isPaused,
+    required this.isLoading,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useAnimationController(duration: const Duration(milliseconds: 100));
+    final randomRotation = useMemoized(() => Random().nextDouble() * pi * 2, [isLoading]);
+    useEffect(() {
+      if (isLoading) {
+        return;
+      }
+      try {
+        if (isPaused) {
+          controller.reverse();
+        } else {
+          controller.forward();
+        }
+      } catch (e) {
+        debugPrint("Play Pause Button animation warning");
+      }
+      return;
+    }, [isPaused, isLoading]);
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: isLoading ? null : onTap,
+      child: ClipOval(
+        child: Container(
+          color: isLoading ? Colors.grey : StyleList.buttonColor,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: AnimatedIcon(
+                  icon: AnimatedIcons.play_pause,
+                  color: Colors.white,
+                  progress: controller,
+                  size: 45.0,
+                ),
+              ),
+              if (isLoading)
+                Positioned.fill(
+                  child: Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Transform.rotate(
+                      angle: randomRotation,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 4.0,
+                        strokeCap: StrokeCap.round,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
