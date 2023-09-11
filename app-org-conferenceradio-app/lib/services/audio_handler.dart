@@ -269,9 +269,8 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> updateQueue(List<MediaItem> mediaItems) async {
     // notify system
-    final newQueue = mediaItems.take(10).toList();
-    queue.add(newQueue);
-    _playlistManager.setQueue(newQueue);
+    queue.add(mediaItems);
+    _playlistManager.setQueue(mediaItems);
   }
 
   @override

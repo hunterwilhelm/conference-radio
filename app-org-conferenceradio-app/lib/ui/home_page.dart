@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:conference_radio_flutter/routes.dart';
+import 'package:conference_radio_flutter/translation.dart';
 import 'package:conference_radio_flutter/ui/bookmarks_page.dart';
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -57,21 +58,6 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-
-const sessionTranslations = {
-  "saturday-morning": "Saturday Morning Session",
-  "saturday-afternoon": "Saturday Afternoon Session",
-  "saturday-evening": "Saturday Evening Session",
-  "sunday-morning": "Sunday Morning Session",
-  "sunday-afternoon": "Sunday Afternoon Session",
-  "priesthood": "Priesthood Session",
-  "welfare": "General Welfare Session",
-  "midweek": "A Midweek Session",
-  "women's": "Women's Session",
-  "young-women": "General Young Women Meeting",
-  "broadcast": "Special Broadcast",
-  "fireside": "Fireside",
-};
 
 enum SampleItem { itemOne, itemTwo, itemThree }
 
@@ -298,17 +284,18 @@ class ActionButtons extends HookWidget {
     final pageManager = getIt<PageManager>();
     return ValueListenableBuilder<Talk?>(
         valueListenable: pageManager.currentTalkNotifier,
-        builder: (context, value, child) {
-          final talkUrl = "https://www.churchofjesuschrist.org${value?.baseUri ?? ""}";
+        builder: (context, talk, child) {
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               IconButton(
                 icon: const Icon(Icons.menu_book_rounded),
-                onPressed: () {
-                  final url = Uri.parse(talkUrl);
-                  launchUrl(url, mode: LaunchMode.externalApplication);
-                },
+                onPressed: talk == null
+                    ? null
+                    : () {
+                        final url = Uri.parse(getChurchLinkFromTalk(talk));
+                        launchUrl(url, mode: LaunchMode.externalApplication);
+                      },
               ),
               ValueListenableBuilder(
                 valueListenable: getIt<PageManager>().currentBookmarkNotifier,
@@ -331,9 +318,11 @@ class ActionButtons extends HookWidget {
               ),
               IconButton(
                 icon: Icon(Icons.adaptive.share),
-                onPressed: () {
-                  Share.share(talkUrl);
-                },
+                onPressed: talk == null
+                    ? null
+                    : () {
+                        Share.share(getChurchLinkFromTalk(talk));
+                      },
               ),
             ],
           );

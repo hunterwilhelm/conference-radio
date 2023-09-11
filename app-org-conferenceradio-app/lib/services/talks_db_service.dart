@@ -162,7 +162,7 @@ class Bookmark {
 
   static Bookmark fromMap(Map<String, Object?> map) {
     return Bookmark._(
-      createdDate: DateTime.parse(map["created_date"] as String),
+      createdDate: DateTime.parse("${map["created_date"] as String}Z").toLocal(),
       talk: Talk.fromMap(map),
     );
   }

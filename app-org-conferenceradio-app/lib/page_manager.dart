@@ -16,6 +16,7 @@ class PageManager {
   // Listeners: Updates going to the UI
   final currentTalkNotifier = ValueNotifier<Talk?>(null);
   final currentBookmarkNotifier = ValueNotifier<bool>(false);
+  final bookmarkListNotifier = ValueNotifier<List<Bookmark>>([]);
   final filterNotifier = FilterNotifier();
   final playlistNotifier = ValueNotifier<List<Talk>>([]);
   final progressNotifier = ProgressNotifier();
@@ -25,11 +26,12 @@ class PageManager {
   final isShuffleModeEnabledNotifier = ValueNotifier<bool>(false);
 
   final _audioHandler = getIt<AudioHandler>();
-  final _songRepository = getIt<TalkRepository>();
+  final _talkRepository = getIt<TalkRepository>();
 
   // Events: Calls coming from the UI
   void init() async {
     await _loadPlaylist();
+    _refreshBookmarks();
     _listenToPlaybackState();
     _listenToCurrentPosition();
     _listenToBufferedPosition();
@@ -97,7 +99,7 @@ class PageManager {
         final talk = playlistNotifier.value.firstWhereOrNull((element) => element.talkId.toString() == mediaItem.id);
         currentTalkNotifier.value = talk;
         if (talk != null) {
-          _songRepository.getIsBookmarked(talk.talkId).then((value) {
+          _talkRepository.getIsBookmarked(talk.talkId).then((value) {
             currentBookmarkNotifier.value = value;
           });
         }
@@ -114,6 +116,10 @@ class PageManager {
     } else {
       isLastSongNotifier.value = playlist.last == mediaItem;
     }
+  }
+
+  void _refreshBookmarks() async {
+    bookmarkListNotifier.value = await _talkRepository.getBookmarkedTalks();
   }
 
   void play() async {
@@ -159,7 +165,7 @@ class PageManager {
   }
 
   Future<void> refreshPlaylist() async {
-    final talks = await _songRepository.fetchTalkPlaylist(
+    final talks = await _talkRepository.fetchTalkPlaylist(
       filter: filterNotifier.value,
     );
     final talkMediaItems = talks
@@ -201,10 +207,11 @@ class PageManager {
     refreshPlaylist();
   }
 
-  void bookmark(bool bookmarked) {
-    final id = currentTalkNotifier.value?.talkId;
+  void bookmark(bool bookmarked, [int? talkId]) {
+    final id = talkId ?? currentTalkNotifier.value?.talkId;
     if (id == null) return;
-    _songRepository.saveBookmark(id, bookmarked);
+    _talkRepository.saveBookmark(id, bookmarked);
     currentBookmarkNotifier.value = bookmarked;
+    _refreshBookmarks();
   }
 }
