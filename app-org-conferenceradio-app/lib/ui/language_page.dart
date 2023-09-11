@@ -1,9 +1,7 @@
-import 'package:conference_radio_flutter/constants/asset_names.dart';
 import 'package:conference_radio_flutter/constants/style_list.dart';
 import 'package:conference_radio_flutter/routes.dart';
+import 'package:conference_radio_flutter/ui/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:go_router/go_router.dart';
 
 class LanguagePage extends StatelessWidget {
   static const route = Routes.languagePage;
@@ -14,20 +12,11 @@ class LanguagePage extends StatelessWidget {
     return Container(
       decoration: StyleList.backgroundGradient,
       child: Scaffold(
+        appBar: const CustomAppBar(title: "Language"),
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 47),
-                child: Hero(
-                  tag: "logo",
-                  child: SvgPicture.asset(
-                    SvgAssetNames.whiteLogo,
-                    height: 112,
-                  ),
-                ),
-              ),
               Flexible(
                 flex: 2,
                 child: Center(
@@ -39,20 +28,24 @@ class LanguagePage extends StatelessWidget {
                           child: TextButton(
                             label: 'English',
                             onClick: () {
-                              context.push(Routes.welcomeBeginPage.path);
+                              Navigator.pop(context);
                             },
                           ),
                         ),
                         Expanded(
                           child: TextButton(
                             label: 'Español',
-                            onClick: () {},
+                            onClick: () {
+                              Navigator.pop(context);
+                            },
                           ),
                         ),
                         Expanded(
                           child: TextButton(
                             label: 'Português',
-                            onClick: () {},
+                            onClick: () {
+                              Navigator.pop(context);
+                            },
                           ),
                         ),
                       ],
