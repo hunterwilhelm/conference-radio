@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' show max, min;
 
 import 'package:audio_service/audio_service.dart';
+import 'package:collection/collection.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -24,8 +25,11 @@ class PlaylistManager {
     useLazyPreparation: false,
   );
 
-  /// Shuffle indexes to pull from
-  final List<int> _shuffleIndexes = [];
+  /// This is used to make sure a new shuffle queue is made only when you hit the shuffle button again
+  List<int> _shuffledIndexes = [];
+
+  ///
+  bool _shuffled = false;
 
   /// The full list of media items to pull from
   final List<MediaItem> _fullPlaylist = [];
@@ -56,10 +60,10 @@ class PlaylistManager {
   AudioPlayer get player => _player;
 
   /// The index of the next item to be played
-  int get nextIndex => _getRelativeIndex(1);
+  int get nextIndex => _getFinalIndex(1);
 
   /// The index of the previous item in play order
-  int get previousIndex => _getRelativeIndex(-1);
+  int get previousIndex => _getFinalIndex(-1);
 
   PlaylistManager() {
     _attachAudioSourceToPlayer();
@@ -95,6 +99,9 @@ class PlaylistManager {
     _fullPlaylist.clear();
     _fullPlaylist.addAll(mediaItems);
     _currentIndex = 0;
+    if (_shuffled) {
+      _updateShuffleIndexes();
+    }
     await _updatePlayer();
   }
 
@@ -108,21 +115,52 @@ class PlaylistManager {
     _player.seek(Duration.zero, index: _playerIndex + 2);
   }
 
-  int _getRelativeIndex(int offset) {
-    return max(0, min(currentIndex + offset, _fullPlaylist.length - 1));
+  /// This will generate a new shuffle queue when [shuffled] is true and before it wasn't
+  void setShuffled(bool shuffled) {
+    if (shuffled == _shuffled) return;
+    _shuffled = shuffled;
+    if (shuffled) {
+      _updateShuffleIndexes();
+      _currentIndex = 0;
+    } else {
+      _currentIndex = _shuffledIndexes[_currentIndex];
+    }
+    _updatePlayer(force: true);
   }
 
-  Future<void> _updatePlayer({int offset = 0}) async {
+  void _updateShuffleIndexes() {
+    final indexes = List.generate(_fullPlaylist.length - 1, (index) {
+      if (index >= _currentIndex) return index + 1;
+      return index;
+    });
+    shuffle(indexes);
+    indexes.insert(0, _currentIndex);
+    _shuffledIndexes = indexes;
+  }
+
+  int _getRelativeIndex(int offset) {
+    return max(0, min(_currentIndex + offset, _fullPlaylist.length - 1));
+  }
+
+  int _getFinalIndex(int offset) {
+    final index = _getRelativeIndex(offset);
+    return _shuffled ? _shuffledIndexes[index] : index;
+  }
+
+  Future<void> _updatePlayer({offset = 0, force = false}) async {
     final newIndex = _getRelativeIndex(offset);
-
-    final newMediaItemCurrent = _fullPlaylist[newIndex];
-    mediaItem.add(newMediaItemCurrent);
-
-    if (newIndex == _currentIndex && _audioSource.length != 0) return;
+    final oldIndex = _currentIndex;
     _currentIndex = newIndex;
 
-    final newMediaItemNext = _fullPlaylist[_getRelativeIndex(1)];
-    final newMediaItemPrevious = _fullPlaylist[_getRelativeIndex(-1)];
+    final newMediaItemCurrent = _fullPlaylist[_getFinalIndex(0)];
+    mediaItem.add(newMediaItemCurrent);
+    print(newMediaItemCurrent);
+    print(_getFinalIndex(0));
+
+    if (newIndex == oldIndex && _audioSource.length != 0 && !force) return;
+
+    final newMediaItemNext = _fullPlaylist[_getFinalIndex(1)];
+    final newMediaItemPrevious = _fullPlaylist[_getFinalIndex(-1)];
     if (_audioSource.length == 0) {
       await _audioSource.add(_createAudioSource(newMediaItemCurrent));
     }
@@ -233,9 +271,9 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> updateQueue(List<MediaItem> mediaItems) async {
     // notify system
-    final newQueue = mediaItems;
+    final newQueue = mediaItems.take(10).toList();
     queue.add(newQueue);
-    _playlistManager.setQueue(mediaItems);
+    _playlistManager.setQueue(newQueue);
   }
 
   @override
@@ -278,7 +316,7 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
-    throw UnimplementedError("setShuffleMode");
+    _playlistManager.setShuffled(AudioServiceShuffleMode.none != shuffleMode);
   }
 
   @override
