@@ -15,6 +15,7 @@ import 'services/service_locator.dart';
 class PageManager {
   // Listeners: Updates going to the UI
   final currentTalkNotifier = ValueNotifier<Talk?>(null);
+  final currentBookmarkNotifier = ValueNotifier<bool>(false);
   final filterNotifier = FilterNotifier();
   final playlistNotifier = ValueNotifier<List<Talk>>([]);
   final progressNotifier = ProgressNotifier();
@@ -24,6 +25,7 @@ class PageManager {
   final isShuffleModeEnabledNotifier = ValueNotifier<bool>(false);
 
   final _audioHandler = getIt<AudioHandler>();
+  final _songRepository = getIt<PlaylistRepository>();
 
   // Events: Calls coming from the UI
   void init() async {
@@ -94,6 +96,11 @@ class PageManager {
       if (mediaItem != null) {
         final talk = playlistNotifier.value.firstWhereOrNull((element) => element.talkId.toString() == mediaItem.id);
         currentTalkNotifier.value = talk;
+        if (talk != null) {
+          _songRepository.getIsBookmarked(talk.talkId).then((value) {
+            currentBookmarkNotifier.value = value;
+          });
+        }
       }
       _updateSkipButtons();
     });
@@ -152,8 +159,7 @@ class PageManager {
   }
 
   Future<void> refreshPlaylist() async {
-    final songRepository = getIt<PlaylistRepository>();
-    final talks = await songRepository.fetchTalkPlaylist(
+    final talks = await _songRepository.fetchTalkPlaylist(
       filter: filterNotifier.value,
     );
     final talkMediaItems = talks
@@ -193,5 +199,12 @@ class PageManager {
   void updateFilterEnd(YearMonth newYearMonth) {
     filterNotifier.value = Filter(filterNotifier.value.start, newYearMonth);
     refreshPlaylist();
+  }
+
+  void bookmark(bool bookmarked) {
+    final id = currentTalkNotifier.value?.talkId;
+    if (id == null) return;
+    _songRepository.saveBookmark(id, bookmarked);
+    currentBookmarkNotifier.value = bookmarked;
   }
 }

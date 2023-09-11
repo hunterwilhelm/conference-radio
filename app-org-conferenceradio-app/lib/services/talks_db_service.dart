@@ -4,7 +4,7 @@ import 'package:sqflite/sqflite.dart';
 
 _onCreate(Database db, int version) async {
   await db.execute("""CREATE TABLE `talks` (
-    `talk_id` INTEGER,
+    `id` INTEGER,
     `lang` TEXT,
     `name` TEXT,
     `type` TEXT,
@@ -15,6 +15,10 @@ _onCreate(Database db, int version) async {
     `title` TEXT,
     `base_uri` TEXT,
     `mp3` TEXT
+)""");
+  await db.execute("""CREATE TABLE `bookmarks` (
+    `talk_id` INTEGER PRIMARY KEY,
+    `created_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )""");
 }
 
@@ -35,7 +39,7 @@ class TalksDbService {
     await db.transaction((txn) async {
       for (final conferenceRow in conferenceRows) {
         await txn.rawInsert(
-          """INSERT INTO `talks` (`talk_id`,`lang`,`name`,`type`,`year`,`month`,`session_order`,`talk_order`,`title`,`base_uri`,`mp3`) VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+          """INSERT INTO `talks` (`id`,`lang`,`name`,`type`,`year`,`month`,`session_order`,`talk_order`,`title`,`base_uri`,`mp3`) VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
           conferenceRow,
         );
       }
@@ -62,7 +66,7 @@ ORDER BY RANDOM() LIMIT 1
 
   Future<Talk?> getNextTalk({String lang = "eng", required int id, required Filter filter}) async {
     final sortedFilter = filter.asSorted();
-    final talkResults = await db.rawQuery(""" SELECT * FROM talks WHERE `talk_id` = ? LIMIT 1 """, [id]);
+    final talkResults = await db.rawQuery(""" SELECT * FROM talks WHERE `id` = ? LIMIT 1 """, [id]);
     final currentTalk = Talk.fromMap(talkResults[0]);
     final talkDate = YearMonth(currentTalk.year, currentTalk.month).date;
     final comparison = talkDate.compareTo(sortedFilter.start.date) + talkDate.compareTo(sortedFilter.end.date);
@@ -106,7 +110,55 @@ ORDER BY year ASC, month ASC, session_order ASC, talk_order ASC
       sortedFilter.end.year,
       sortedFilter.end.month,
     ]);
-    return results.map((talkMap) => Talk.fromMap(talkMap)).toList();
+    return results.map((map) => Talk.fromMap(map)).toList();
+  }
+
+  Future<List<Bookmark>> getBookmarkedTalks({String lang = "eng"}) async {
+    final results = await db.rawQuery("""
+SELECT * FROM bookmarks
+INNER JOIN talks ON talks.id = bookmarks.talk_id
+WHERE talks.`lang` = ? 
+ORDER BY bookmarks.created_date DESC
+""", [
+      lang,
+    ]);
+    return results.map((map) => Bookmark.fromMap(map)).toList();
+  }
+
+  Future<void> saveBookmark(int talkId, bool bookmarked) async {
+    const insertQuery = """
+INSERT INTO bookmarks (talk_id) VALUES (?)
+""";
+    const deleteQuery = """
+DELETE FROM bookmarks
+WHERE bookmarks.talk_id = ? 
+""";
+    await db.rawQuery(bookmarked ? insertQuery : deleteQuery, [talkId]);
+  }
+
+  Future<bool> getIsBookmarked(int talkId) async {
+    const countQuery = """
+SELECT COUNT(*) as count FROM bookmarks WHERE talk_id = ?
+""";
+    final results = await db.rawQuery(countQuery, [talkId]);
+    return results[0]["count"] == 1;
+  }
+}
+
+class Bookmark {
+  final DateTime createdDate;
+  final Talk talk;
+
+  Bookmark._({
+    required this.createdDate,
+    required this.talk,
+  });
+
+  static Bookmark fromMap(Map<String, Object?> map) {
+    return Bookmark._(
+      createdDate: map["created_date"] as DateTime,
+      talk: Talk.fromMap(map),
+    );
   }
 }
 
@@ -160,7 +212,7 @@ class Talk {
 
   static Talk fromMap(Map<String, Object?> map) {
     return Talk._(
-      talkId: map["talk_id"] as int,
+      talkId: map["id"] as int,
       lang: map["lang"] as String,
       name: map["name"] as String,
       type: map["type"] as String,

@@ -292,9 +292,9 @@ class ActionButtons extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isBookmarked = useState(true);
+    final pageManager = getIt<PageManager>();
     return ValueListenableBuilder<Talk?>(
-        valueListenable: getIt<PageManager>().currentTalkNotifier,
+        valueListenable: pageManager.currentTalkNotifier,
         builder: (context, value, child) {
           final talkUrl = "https://www.churchofjesuschrist.org${value?.baseUri ?? ""}";
           return Row(
@@ -307,18 +307,23 @@ class ActionButtons extends HookWidget {
                   launchUrl(url, mode: LaunchMode.externalApplication);
                 },
               ),
-              IconButton(
-                icon: isBookmarked.value
-                    ? const Icon(
-                        FluentIcons.bookmark_16_filled,
-                        color: Color(0xFF0085FF),
-                      )
-                    : const Icon(
-                        FluentIcons.bookmark_16_regular,
-                        color: Colors.black,
-                      ),
-                onPressed: () {
-                  isBookmarked.value = !isBookmarked.value;
+              ValueListenableBuilder(
+                valueListenable: getIt<PageManager>().currentBookmarkNotifier,
+                builder: (context, isBookmarked, child) {
+                  return IconButton(
+                    icon: isBookmarked
+                        ? const Icon(
+                            FluentIcons.bookmark_16_filled,
+                            color: Color(0xFF0085FF),
+                          )
+                        : const Icon(
+                            FluentIcons.bookmark_16_regular,
+                            color: Colors.black,
+                          ),
+                    onPressed: () {
+                      pageManager.bookmark(!isBookmarked);
+                    },
+                  );
                 },
               ),
               IconButton(
@@ -523,10 +528,10 @@ class PlayPauseButton extends HookWidget {
               if (isLoading)
                 Positioned.fill(
                   child: Padding(
-                    padding: EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(4),
                     child: Transform.rotate(
                       angle: randomRotation,
-                      child: CircularProgressIndicator(
+                      child: const CircularProgressIndicator(
                         strokeWidth: 4.0,
                         strokeCap: StrokeCap.round,
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),

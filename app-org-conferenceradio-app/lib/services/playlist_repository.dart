@@ -3,15 +3,9 @@ import 'package:conference_radio_flutter/services/talks_db_service.dart';
 
 import 'sync_service.dart';
 
-abstract class PlaylistRepository {
-  Future<Talk?> fetchNextTalk({String? idForSequential, required Filter filter});
-  Future<List<Talk>> fetchTalkPlaylist({required Filter filter});
-}
-
-class DemoPlaylist extends PlaylistRepository {
+class PlaylistRepository {
   late final TalksDbService _talksDbService;
   bool hasInit = false;
-  @override
   Future<Talk?> fetchNextTalk({String? idForSequential, required Filter filter}) async {
     await ensureInitialized();
     final id = idForSequential == null ? null : int.tryParse(idForSequential);
@@ -22,10 +16,24 @@ class DemoPlaylist extends PlaylistRepository {
     }
   }
 
-  @override
   Future<List<Talk>> fetchTalkPlaylist({required Filter filter}) async {
     await ensureInitialized();
     return _talksDbService.getTalkPlaylist(filter: filter);
+  }
+
+  Future<List<Bookmark>> getBookmarkedTalks() async {
+    await ensureInitialized();
+    return _talksDbService.getBookmarkedTalks();
+  }
+
+  Future<bool> getIsBookmarked(int talkId) async {
+    await ensureInitialized();
+    return _talksDbService.getIsBookmarked(talkId);
+  }
+
+  Future<void> saveBookmark(int id, bool bookmarked) async {
+    await ensureInitialized();
+    return _talksDbService.saveBookmark(id, bookmarked);
   }
 
   Future<void> ensureInitialized() async {
