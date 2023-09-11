@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BookmarksPage extends HookWidget {
@@ -141,14 +142,6 @@ class BookmarkSheet extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.play_arrow),
-            title: const Text('Play'),
-            onTap: () {
-              // Handle Play action
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
             leading: const Icon(Icons.menu_book_rounded),
             title: const Text('Open In Gospel Library'),
             onTap: () {
@@ -160,8 +153,7 @@ class BookmarkSheet extends StatelessWidget {
             leading: const Icon(Icons.share),
             title: const Text('Share'),
             onTap: () {
-              final url = Uri.parse(getChurchLinkFromTalk(bookmark.talk));
-              launchUrl(url, mode: LaunchMode.externalApplication);
+              Share.share(getChurchLinkFromTalk(bookmark.talk));
             },
           ),
           ListTile(
