@@ -116,12 +116,13 @@ class PlaylistManager {
   }
 
   /// This will generate a new shuffle queue when [shuffled] is true and before it wasn't
-  void setShuffled(bool shuffled) {
+  void setShuffled(bool shuffled) async {
     if (shuffled == _shuffled) return;
     _shuffled = shuffled;
     if (shuffled) {
       _updateShuffleIndexes();
       _currentIndex = 0;
+      _audioSource.clear();
     } else {
       _currentIndex = _shuffledIndexes[_currentIndex];
     }
@@ -162,7 +163,10 @@ class PlaylistManager {
     if (_audioSource.length == 0) {
       await _audioSource.add(_createAudioSource(newMediaItemCurrent));
     }
-
+    if (offset == 0 && force == true && _audioSource.length == 3) {
+      await _audioSource.removeAt(2);
+      await _audioSource.removeAt(1);
+    }
     if (offset == 1) {
       _audioSource.removeAt(2);
       _ignoreIndexChangedOnce = true;
