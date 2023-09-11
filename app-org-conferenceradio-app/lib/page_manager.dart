@@ -8,9 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'notifiers/filter_notifier.dart';
 import 'notifiers/play_button_notifier.dart';
 import 'notifiers/progress_notifier.dart';
-import 'notifiers/repeat_button_notifier.dart';
-import 'services/talk_repository.dart';
 import 'services/service_locator.dart';
+import 'services/talk_repository.dart';
 
 class PageManager {
   // Listeners: Updates going to the UI
@@ -20,7 +19,6 @@ class PageManager {
   final filterNotifier = FilterNotifier();
   final playlistNotifier = ValueNotifier<List<Talk>>([]);
   final progressNotifier = ProgressNotifier();
-  final repeatButtonNotifier = RepeatButtonNotifier();
   final playButtonNotifier = PlayButtonNotifier();
   final isLastSongNotifier = ValueNotifier<bool>(true);
   final isShuffleModeEnabledNotifier = ValueNotifier<bool>(false);
@@ -137,22 +135,6 @@ class PageManager {
   }
 
   void next() => _audioHandler.skipToNext();
-
-  void repeat() {
-    repeatButtonNotifier.nextState();
-    final repeatMode = repeatButtonNotifier.value;
-    switch (repeatMode) {
-      case RepeatState.off:
-        _audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
-        break;
-      case RepeatState.repeatSong:
-        _audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
-        break;
-      case RepeatState.repeatPlaylist:
-        _audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
-        break;
-    }
-  }
 
   void shuffle() async {
     final enable = !isShuffleModeEnabledNotifier.value;

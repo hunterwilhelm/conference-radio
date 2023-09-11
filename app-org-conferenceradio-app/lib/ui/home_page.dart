@@ -18,7 +18,6 @@ import '../constants/style_list.dart';
 import '../notifiers/filter_notifier.dart';
 import '../notifiers/play_button_notifier.dart';
 import '../notifiers/progress_notifier.dart';
-import '../notifiers/repeat_button_notifier.dart';
 import '../page_manager.dart';
 import '../services/service_locator.dart';
 import '../services/talks_db_service.dart';
@@ -297,25 +296,6 @@ class ActionButtons extends HookWidget {
                         launchUrl(url, mode: LaunchMode.externalApplication);
                       },
               ),
-              ValueListenableBuilder(
-                valueListenable: getIt<PageManager>().currentBookmarkNotifier,
-                builder: (context, isBookmarked, child) {
-                  return IconButton(
-                    icon: isBookmarked
-                        ? const Icon(
-                            FluentIcons.bookmark_16_filled,
-                            color: Color(0xFF0085FF),
-                          )
-                        : const Icon(
-                            FluentIcons.bookmark_16_regular,
-                            color: Colors.black,
-                          ),
-                    onPressed: () {
-                      pageManager.bookmark(!isBookmarked);
-                    },
-                  );
-                },
-              ),
               IconButton(
                 icon: Icon(Icons.adaptive.share),
                 onPressed: talk == null
@@ -390,39 +370,37 @@ class AudioControlButtons extends StatelessWidget {
         PreviousSongButton(),
         PlayButton(),
         NextSongButton(),
-        SleepTimerButton(),
+        BookmarkButton(),
       ],
     );
   }
 }
 
-class SleepTimerButton extends StatelessWidget {
-  const SleepTimerButton({Key? key}) : super(key: key);
+class BookmarkButton extends StatelessWidget {
+  const BookmarkButton({
+    super.key,
+  });
+
   @override
   Widget build(BuildContext context) {
     final pageManager = getIt<PageManager>();
-    return ValueListenableBuilder<RepeatState>(
-      valueListenable: pageManager.repeatButtonNotifier,
-      builder: (context, value, child) {
-        Icon icon;
-        switch (value) {
-          case RepeatState.off:
-            icon = const Icon(
-              FluentIcons.timer_12_regular,
-              size: 30,
-              color: StyleList.bottomRowSecondaryButtonColor,
-            );
-            break;
-          case RepeatState.repeatSong:
-            icon = const Icon(Icons.repeat_one);
-            break;
-          case RepeatState.repeatPlaylist:
-            icon = const Icon(Icons.repeat);
-            break;
-        }
+    return ValueListenableBuilder(
+      valueListenable: getIt<PageManager>().currentBookmarkNotifier,
+      builder: (context, isBookmarked, child) {
         return IconButton(
-          icon: icon,
-          onPressed: pageManager.repeat,
+          iconSize: 30,
+          icon: isBookmarked
+              ? const Icon(
+                  FluentIcons.bookmark_16_filled,
+                  color: Color(0xFF0085FF),
+                )
+              : const Icon(
+                  FluentIcons.bookmark_16_regular,
+                  color: Colors.black,
+                ),
+          onPressed: () {
+            pageManager.bookmark(!isBookmarked);
+          },
         );
       },
     );
