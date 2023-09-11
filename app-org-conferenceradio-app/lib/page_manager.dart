@@ -9,7 +9,7 @@ import 'notifiers/filter_notifier.dart';
 import 'notifiers/play_button_notifier.dart';
 import 'notifiers/progress_notifier.dart';
 import 'notifiers/repeat_button_notifier.dart';
-import 'services/playlist_repository.dart';
+import 'services/talk_repository.dart';
 import 'services/service_locator.dart';
 
 class PageManager {
@@ -25,7 +25,7 @@ class PageManager {
   final isShuffleModeEnabledNotifier = ValueNotifier<bool>(false);
 
   final _audioHandler = getIt<AudioHandler>();
-  final _songRepository = getIt<PlaylistRepository>();
+  final _songRepository = getIt<TalkRepository>();
 
   // Events: Calls coming from the UI
   void init() async {

@@ -19,7 +19,7 @@ class FilterPage extends StatelessWidget {
     return Container(
       decoration: StyleList.backgroundGradient,
       child: Scaffold(
-        appBar: const CustomAppBar(),
+        appBar: const CustomAppBar(title: "Filter"),
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Center(

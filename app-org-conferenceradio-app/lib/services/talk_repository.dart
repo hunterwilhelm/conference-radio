@@ -3,7 +3,7 @@ import 'package:conference_radio_flutter/services/talks_db_service.dart';
 
 import 'sync_service.dart';
 
-class PlaylistRepository {
+class TalkRepository {
   late final TalksDbService _talksDbService;
   bool hasInit = false;
   Future<Talk?> fetchNextTalk({String? idForSequential, required Filter filter}) async {

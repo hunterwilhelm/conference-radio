@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double appBarHeight = 49;
 
-  const CustomAppBar({super.key});
+  final String title;
+
+  const CustomAppBar({super.key, required this.title});
   @override
   Size get preferredSize => Size.fromHeight(appBarHeight);
 
@@ -25,18 +27,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             bottom: BorderSide(width: 1, color: Color(0x4C818181)),
           ),
         ),
-        child: const SafeArea(
+        child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.all(11.0),
+            padding: const EdgeInsets.all(11.0),
             child: Stack(
               children: [
-                Align(
+                const Align(
                   alignment: Alignment.centerLeft,
                   child: Icon(FluentIcons.chevron_left_12_regular),
                 ),
                 Center(
                   child: Text(
-                    'Filter',
+                    title,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xFF818181),
