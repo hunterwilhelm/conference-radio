@@ -98,6 +98,7 @@ class PlaylistManager {
   setQueue(List<MediaItem> mediaItems) async {
     _fullPlaylist.clear();
     _fullPlaylist.addAll(mediaItems);
+    _audioSource.clear();
     _currentIndex = 0;
     if (_shuffled) {
       _updateShuffleIndexes();
