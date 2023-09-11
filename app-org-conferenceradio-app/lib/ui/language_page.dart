@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
-class WelcomeLanguagePage extends StatelessWidget {
-  static const route = Routes.welcomeLanguagePage;
-  const WelcomeLanguagePage({super.key});
+class LanguagePage extends StatelessWidget {
+  static const route = Routes.languagePage;
+  const LanguagePage({super.key});
 
   @override
   Widget build(BuildContext context) {

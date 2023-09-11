@@ -125,8 +125,11 @@ class TopBar extends StatelessWidget {
               ),
             ),
             itemBuilder: (BuildContext context) => [
-              const PopupMenuItem(
-                child: Row(
+              PopupMenuItem(
+                onTap: () {
+                  context.push(Routes.languagePage.path);
+                },
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
                   children: [

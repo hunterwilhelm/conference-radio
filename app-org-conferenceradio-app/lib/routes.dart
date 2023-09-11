@@ -1,5 +1,5 @@
 enum Routes {
-  welcomeLanguagePage,
+  languagePage,
   welcomeBeginPage,
   homePage,
   filterPage,
