@@ -165,67 +165,72 @@ class AlbumCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pageManager = getIt<PageManager>();
-    return Padding(
-      padding: const EdgeInsets.all(26.0),
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: Container(
-          decoration: ShapeDecoration(
-            color: Colors.white.withOpacity(0.7300000190734863),
-            shape: SmoothRectangleBorder(
-              side: const BorderSide(width: 1, color: Color(0x4C818181)),
-              borderRadius: SmoothBorderRadius(
-                cornerRadius: 46,
-                cornerSmoothing: 0.64,
+    return GestureDetector(
+      onTap: () {
+        context.go(Routes.welcomeBeginPage.path);
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(26.0),
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            decoration: ShapeDecoration(
+              color: Colors.white.withOpacity(0.7300000190734863),
+              shape: SmoothRectangleBorder(
+                side: const BorderSide(width: 1, color: Color(0x4C818181)),
+                borderRadius: SmoothBorderRadius(
+                  cornerRadius: 46,
+                  cornerSmoothing: 0.64,
+                ),
               ),
             ),
-          ),
-          child: ValueListenableBuilder<Talk?>(
-            valueListenable: pageManager.currentTalkNotifier,
-            builder: (_, talk, __) {
-              if (talk == null) {
-                return const CircularProgressIndicator();
-              }
-              final monthAndYear = '${talk.month == 4 ? "April" : "October"}\n${talk.year}';
-              final session = (sessionTranslations[talk.type] ?? talk.type).replaceAll(" ", "\n");
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text(
-                    monthAndYear,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 25.67,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 2.05,
+            child: ValueListenableBuilder<Talk?>(
+              valueListenable: pageManager.currentTalkNotifier,
+              builder: (_, talk, __) {
+                if (talk == null) {
+                  return const CircularProgressIndicator();
+                }
+                final monthAndYear = '${talk.month == 4 ? "April" : "October"}\n${talk.year}';
+                final session = (sessionTranslations[talk.type] ?? talk.type).replaceAll(" ", "\n");
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      monthAndYear,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 25.67,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 2.05,
+                      ),
                     ),
-                  ),
-                  Container(
-                    width: 124,
-                    height: 1,
-                    decoration: const ShapeDecoration(
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          width: 1,
-                          strokeAlign: BorderSide.strokeAlignCenter,
+                    Container(
+                      width: 124,
+                      height: 1,
+                      decoration: const ShapeDecoration(
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(
+                            width: 1,
+                            strokeAlign: BorderSide.strokeAlignCenter,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Text(
-                    session,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 25.67,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 2.05,
+                    Text(
+                      session,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 25.67,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 2.05,
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
