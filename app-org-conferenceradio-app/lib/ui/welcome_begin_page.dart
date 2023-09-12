@@ -139,6 +139,12 @@ class AnalyticsOptOutButton extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final optOut = useState(false);
+    useEffect(() {
+      SharedPreferences.getInstance().then((sharedPreferences) {
+        optOut.value = sharedPreferences.getBool("opt_out_of_analytics") == true;
+      });
+      return;
+    }, []);
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
