@@ -1,10 +1,13 @@
 import 'package:conference_radio_flutter/constants/style_list.dart';
+import 'package:conference_radio_flutter/page_manager.dart';
 import 'package:conference_radio_flutter/routes.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:conference_radio_flutter/services/service_locator.dart';
+import 'package:conference_radio_flutter/ui/widgets/play_pause_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/asset_names.dart';
 
@@ -14,6 +17,7 @@ class WelcomeBeginPage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final goRouter = GoRouter.of(context);
     return Container(
       decoration: StyleList.backgroundGradient,
       child: Scaffold(
@@ -23,12 +27,9 @@ class WelcomeBeginPage extends HookWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 47),
-                child: Hero(
-                  tag: "logo",
-                  child: SvgPicture.asset(
-                    SvgAssetNames.whiteLogo,
-                    height: 112,
-                  ),
+                child: SvgPicture.asset(
+                  SvgAssetNames.whiteLogo,
+                  height: 112,
                 ),
               ),
               Flexible(
@@ -99,14 +100,21 @@ class WelcomeBeginPage extends HookWidget {
                         const SizedBox(
                           height: 10,
                         ),
-                        IconButton(
-                          iconSize: 80,
-                          onPressed: () {
-                            context.go(Routes.homePage.path);
-                          },
-                          icon: const Icon(
-                            FluentIcons.play_circle_24_filled,
-                            color: Color(0xFF0085FF),
+                        Hero(
+                          tag: 'playPauseButton',
+                          child: PlayPauseButton(
+                            isLoading: false,
+                            isPaused: true,
+                            onTap: () async {
+                              SharedPreferences.getInstance().then((sharedPreferences) {
+                                sharedPreferences.setBool("welcome_screen_dismissed", true);
+                              });
+
+                              final pageManager = getIt<PageManager>();
+                              pageManager.play();
+
+                              goRouter.go(Routes.homePage.path);
+                            },
                           ),
                         ),
                       ],

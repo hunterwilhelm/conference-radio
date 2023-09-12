@@ -7,17 +7,21 @@ import 'package:conference_radio_flutter/ui/language_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'page_manager.dart';
 import 'services/service_locator.dart';
 
 void main() async {
   await setupServiceLocator();
-  runApp(const MyApp());
+  final sharedPreferences = await SharedPreferences.getInstance();
+  final welcomeScreenDismissed = sharedPreferences.getBool("welcome_screen_dismissed") == true;
+  runApp(MyApp(welcomeScreenDismissed));
 }
 
 class MyApp extends StatefulHookWidget {
-  const MyApp({super.key});
+  final bool welcomeScreenDismissed;
+  const MyApp(this.welcomeScreenDismissed, {super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -38,7 +42,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final router = useMemoized(() => AppRouter().router(context), []);
+    final router = useMemoized(() => AppRouter().router(context, widget.welcomeScreenDismissed), []);
     return MaterialApp.router(
       theme: ThemeData(fontFamily: 'REM'),
       routerConfig: router,
@@ -47,9 +51,9 @@ class _MyAppState extends State<MyApp> {
 }
 
 class AppRouter {
-  GoRouter router(BuildContext context) {
+  GoRouter router(BuildContext context, bool welcomeScreenDismissed) {
     final router = GoRouter(
-      initialLocation: HomePage.route.path,
+      initialLocation: welcomeScreenDismissed ? HomePage.route.path : WelcomeBeginPage.route.path,
       routes: [
         GoRoute(
           path: LanguagePage.route.path,
