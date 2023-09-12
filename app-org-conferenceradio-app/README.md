@@ -3,7 +3,7 @@
 ### Todos Release 1
  - [x] feature: upgrade audio service to the `just_audio` package
  - [x] bug: to fix, reset the queue except for current talk when changing between shuffle and chronological 
- - [-] bug: when pressing back while listening beyond 30 seconds of a talk, make it go to the beginning of the talk. (Works for phone screen but not headphones)
+ - [x] bug: when pressing back while listening beyond 30 seconds of a talk, make it go to the beginning of the talk. (Works for phone screen but not headphones)
  - [x] bug: disable landscape mode
  - [x] bug: fix android app icon from being too big
  - [x] bug: the seek bar in the notifications isn't not updating sometimes
@@ -11,17 +11,17 @@
  - [x] bug: fix filters
  - [x] feature: allow back to go past the first talk when in chronological mode
  - [x] feature: add open in gospel library
- - [ ] feature: save where you were and your settings to your phone
- - [ ] feature: languages
  - [x] feature: add bookmarked talks
  - [x] feature: add share in other applications
- - [ ] feature: iOS podcast buttons in the notifications
- - [ ] feature: android podcast buttons in the notifications
+ - [ ] feature: save where you were and your settings to your phone
  - [ ] feature: add anonymous analytics
+ - [ ] feature: languages
 
 
 ### Todos Release 2
 #### Requirements to begin: 30 monthly active users
+ - [ ] feature: iOS podcast buttons in the notifications
+ - [ ] feature: android podcast buttons in the notifications
  - [ ] feature: fix issue when you hit shuffle while a talk is playing, it restarts the talk
  - [ ] feature: sleep timer
  - [ ] feature: play a talk from your bookmarks
