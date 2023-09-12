@@ -3,8 +3,10 @@ import 'dart:math' show max, min;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:collection/collection.dart';
+import 'package:conference_radio_flutter/share_preferences_keys.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<AudioHandler> initAudioService() async {
   return await AudioService.init(
@@ -251,6 +253,11 @@ class MyAudioHandler extends BaseAudioHandler {
       if (oldMediaItem == null) return;
       final newMediaItem = oldMediaItem.copyWith(duration: duration);
       mediaItem.add(newMediaItem);
+
+      if (duration == null) return;
+      SharedPreferences.getInstance().then((sharedPreferences) {
+        sharedPreferences.setInt(SharedPreferencesKeys.playerPositionInSeconds, duration.inSeconds);
+      });
     }));
   }
 
@@ -258,6 +265,11 @@ class MyAudioHandler extends BaseAudioHandler {
     _streamSubscriptions.add(_playlistManager.mediaItem.listen((newMediaItem) {
       final newMediaItemWithDuration = newMediaItem.copyWith(duration: _playlistManager.player.duration);
       mediaItem.add(newMediaItemWithDuration);
+      final id = int.tryParse(newMediaItem.id);
+      if (id == null) return;
+      SharedPreferences.getInstance().then((sharedPreferences) {
+        sharedPreferences.setInt(SharedPreferencesKeys.playerTalkId, id);
+      });
     }));
   }
 

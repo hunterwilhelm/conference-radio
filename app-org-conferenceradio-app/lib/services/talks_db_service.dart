@@ -149,6 +149,20 @@ SELECT COUNT(*) as count FROM bookmarks WHERE talk_id = ?
     final results = await db.rawQuery(countQuery, [talkId]);
     return results[0]["count"] == 1;
   }
+
+  Future<Filter> getMaxRange({String lang = "eng"}) async {
+    const countQuery = """
+SELECT MAX(year + (CAST(month as REAL) / 20)) as end, MIN(year + (CAST(month as REAL) / 20)) as start FROM talks WHERE lang = ?
+""";
+    final results = await db.rawQuery(countQuery, [lang]);
+    final start = results[0]["start"] as double;
+    final startYear = start.floor();
+    final startMonth = ((start - startYear) * 20).toInt();
+    final end = results[0]["end"] as double;
+    final endYear = end.floor();
+    final endMonth = ((end - endYear) * 20).toInt();
+    return Filter(YearMonth(startYear, startMonth), YearMonth(endYear, endMonth));
+  }
 }
 
 class Bookmark {

@@ -1,4 +1,7 @@
+import 'package:conference_radio_flutter/page_manager.dart';
 import 'package:conference_radio_flutter/routes.dart';
+import 'package:conference_radio_flutter/services/service_locator.dart';
+import 'package:conference_radio_flutter/share_preferences_keys.dart';
 import 'package:conference_radio_flutter/ui/bookmarks_page.dart';
 import 'package:conference_radio_flutter/ui/filter_page.dart';
 import 'package:conference_radio_flutter/ui/home_page.dart';
@@ -9,13 +12,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'page_manager.dart';
-import 'services/service_locator.dart';
-
 void main() async {
   await setupServiceLocator();
   final sharedPreferences = await SharedPreferences.getInstance();
-  final welcomeScreenDismissed = sharedPreferences.getBool("welcome_screen_dismissed") == true;
+  final welcomeScreenDismissed = sharedPreferences.getBool(SharedPreferencesKeys.welcomeScreenDismissed) == true;
   runApp(MyApp(welcomeScreenDismissed));
 }
 

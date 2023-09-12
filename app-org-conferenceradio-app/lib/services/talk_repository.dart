@@ -6,6 +6,7 @@ import 'sync_service.dart';
 class TalkRepository {
   late final TalksDbService _talksDbService;
   bool hasInit = false;
+  bool initializing = false;
   Future<Talk?> fetchNextTalk({String? idForSequential, required Filter filter}) async {
     await ensureInitialized();
     final id = idForSequential == null ? null : int.tryParse(idForSequential);
@@ -14,6 +15,11 @@ class TalkRepository {
     } else {
       return _talksDbService.getNextTalk(id: id, filter: filter);
     }
+  }
+
+  Future<Filter> getMaxRange() async {
+    await ensureInitialized();
+    return _talksDbService.getMaxRange();
   }
 
   Future<List<Talk>> fetchTalkPlaylist({required Filter filter}) async {
@@ -37,9 +43,15 @@ class TalkRepository {
   }
 
   Future<void> ensureInitialized() async {
+    if (initializing) {
+      await Future.delayed(const Duration(milliseconds: 1));
+      return ensureInitialized();
+    }
     if (!hasInit) {
-      hasInit = true;
+      initializing = true;
       _talksDbService = await TalksDbService.init();
+      initializing = false;
+      hasInit = true;
       await SyncService().checkForUpdatesAndApply();
     }
   }

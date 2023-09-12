@@ -2,8 +2,10 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:collection/collection.dart';
 import 'package:conference_radio_flutter/services/talks_db_service.dart';
+import 'package:conference_radio_flutter/share_preferences_keys.dart';
 import 'package:conference_radio_flutter/ui/filter_page.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'notifiers/filter_notifier.dart';
 import 'notifiers/play_button_notifier.dart';
@@ -38,7 +40,7 @@ class PageManager {
   }
 
   Future<void> _loadPlaylist() async {
-    await refreshPlaylist();
+    refreshPlaylist(initialLoad: true);
   }
 
   void _listenToPlaybackState() {
@@ -146,7 +148,15 @@ class PageManager {
     }
   }
 
-  Future<void> refreshPlaylist() async {
+  Future<void> refreshPlaylist({bool initialLoad = false}) async {
+    if (initialLoad) {
+      final initialData = await getInitialPlayerData();
+      if (initialData != null) {
+        filterNotifier.value = initialData.filter;
+      } else {
+        filterNotifier.value = await _talkRepository.getMaxRange();
+      }
+    }
     final talks = await _talkRepository.fetchTalkPlaylist(
       filter: filterNotifier.value,
     );
@@ -181,12 +191,23 @@ class PageManager {
 
   void updateFilterStart(YearMonth newYearMonth) {
     filterNotifier.value = Filter(newYearMonth, filterNotifier.value.end);
+    _saveFilter();
     refreshPlaylist();
   }
 
   void updateFilterEnd(YearMonth newYearMonth) {
     filterNotifier.value = Filter(filterNotifier.value.start, newYearMonth);
+    _saveFilter();
     refreshPlaylist();
+  }
+
+  void _saveFilter() {
+    SharedPreferences.getInstance().then((sharedPreferences) {
+      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterStartYear, filterNotifier.value.start.year);
+      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterStartMonth, filterNotifier.value.start.month);
+      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterEndYear, filterNotifier.value.end.year);
+      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterEndMonth, filterNotifier.value.end.month);
+    });
   }
 
   void bookmark(bool bookmarked, [int? talkId]) {
@@ -196,4 +217,37 @@ class PageManager {
     currentBookmarkNotifier.value = bookmarked;
     _refreshBookmarks();
   }
+}
+
+class InitialPlayerData {
+  final Duration position;
+  final int talkId;
+  final Filter filter;
+
+  InitialPlayerData({
+    required this.position,
+    required this.talkId,
+    required this.filter,
+  });
+}
+
+Future<InitialPlayerData?> getInitialPlayerData() async {
+  final sharedPreferences = await SharedPreferences.getInstance();
+  final talkId = sharedPreferences.getInt(SharedPreferencesKeys.playerTalkId);
+  final positionInSeconds = sharedPreferences.getInt(SharedPreferencesKeys.playerPositionInSeconds);
+  final filterStartYear = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterStartYear);
+  final filterStartMonth = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterStartMonth);
+  final filterEndYear = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterEndYear);
+  final filterEndMonth = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterEndMonth);
+  if (talkId != null && positionInSeconds != null && filterStartYear != null && filterStartMonth != null && filterEndYear != null && filterEndMonth != null) {
+    return InitialPlayerData(
+      filter: Filter(
+        YearMonth(filterStartYear, filterStartMonth),
+        YearMonth(filterEndYear, filterEndMonth),
+      ),
+      position: Duration(seconds: positionInSeconds),
+      talkId: talkId,
+    );
+  }
+  return null;
 }
