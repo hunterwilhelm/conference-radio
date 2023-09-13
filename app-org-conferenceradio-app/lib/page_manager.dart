@@ -154,7 +154,8 @@ class PageManager {
       if (initialData != null) {
         filterNotifier.value = initialData.filter;
       } else {
-        filterNotifier.value = await _talkRepository.getMaxRange();
+        final maxRange = await _talkRepository.getMaxRange();
+        filterNotifier.value = Filter(maxRange.end.previous().previous(), maxRange.end);
       }
     }
     final talks = await _talkRepository.fetchTalkPlaylist(

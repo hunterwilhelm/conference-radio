@@ -151,7 +151,12 @@ class PickConference extends HookWidget {
         child: CupertinoPicker(
           itemExtent: 50,
           scrollController: FixedExtentScrollController(initialItem: defaultIndex),
-          children: [...options].map((option) => buildOptionItem(option.longLabel)).toList(),
+          children: [
+            for (final option in options)
+              _OptionItem(
+                option.longLabel,
+              ),
+          ],
           onSelectedItemChanged: (index) {
             selected.value = options[index];
           },
@@ -189,6 +194,20 @@ class YearMonth {
   int get hashCode => year.hashCode ^ month.hashCode;
 
   const YearMonth(this.year, this.month);
+
+  YearMonth next() {
+    if (month == 10) {
+      return YearMonth(year + 1, 4);
+    }
+    return YearMonth(year, 10);
+  }
+
+  YearMonth previous() {
+    if (month == 10) {
+      return YearMonth(year, 4);
+    }
+    return YearMonth(year - 1, 10);
+  }
 }
 
 List<YearMonth> generateMonthsBetween({
@@ -210,11 +229,17 @@ List<YearMonth> generateMonthsBetween({
   return monthsList;
 }
 
-Widget buildOptionItem(String option) {
-  return Center(
-    child: Text(
-      option,
-      style: TextStyle(fontSize: 18),
-    ),
-  );
+class _OptionItem extends StatelessWidget {
+  final String option;
+  const _OptionItem(this.option);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        option,
+        style: const TextStyle(fontSize: 18),
+      ),
+    );
+  }
 }
