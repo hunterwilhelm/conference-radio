@@ -63,8 +63,12 @@ class PageManager {
 
   void _listenToCurrentPosition() {
     AudioService.position.listen((position) {
+      print("listener $position");
       SharedPreferences.getInstance().then((sharedPreferences) {
-        sharedPreferences.setInt(SharedPreferencesKeys.playerPositionInSeconds, position.inSeconds);
+        print("getInstance ${position.inSeconds}");
+        sharedPreferences.setInt(SharedPreferencesKeys.playerPositionInSeconds, position.inSeconds).then((value) {
+          print("getInstance ${position.inSeconds} $value");
+        });
       });
 
       final oldState = progressNotifier.value;
@@ -157,8 +161,9 @@ class PageManager {
     InitialPlayerData? initialData;
     if (initialLoad) {
       initialData = await getInitialPlayerData();
-      if (initialData != null) {
-        filterNotifier.value = initialData.filter;
+      final filter = initialData.filter;
+      if (filter != null) {
+        filterNotifier.value = filter;
       } else {
         final maxRange = await _talkRepository.getMaxRange();
         filterNotifier.value = Filter(maxRange.end.previous().previous(), maxRange.end);
@@ -237,10 +242,10 @@ class PageManager {
 }
 
 class InitialPlayerData {
-  final Duration position;
-  final int talkId;
-  final Filter filter;
-  final bool shuffled;
+  final Duration? position;
+  final int? talkId;
+  final Filter? filter;
+  final bool? shuffled;
 
   InitialPlayerData({
     required this.position,
@@ -250,7 +255,7 @@ class InitialPlayerData {
   });
 }
 
-Future<InitialPlayerData?> getInitialPlayerData() async {
+Future<InitialPlayerData> getInitialPlayerData() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   final talkId = sharedPreferences.getInt(SharedPreferencesKeys.playerTalkId);
   final playerShuffled = sharedPreferences.getBool(SharedPreferencesKeys.playerShuffled);
@@ -259,17 +264,17 @@ Future<InitialPlayerData?> getInitialPlayerData() async {
   final filterStartMonth = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterStartMonth);
   final filterEndYear = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterEndYear);
   final filterEndMonth = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterEndMonth);
-  print(positionInSeconds);
-  if (talkId != null && positionInSeconds != null && filterStartYear != null && filterStartMonth != null && filterEndYear != null && filterEndMonth != null) {
-    return InitialPlayerData(
-      filter: Filter(
-        YearMonth(filterStartYear, filterStartMonth),
-        YearMonth(filterEndYear, filterEndMonth),
-      ),
-      position: Duration(seconds: positionInSeconds),
-      talkId: talkId,
-      shuffled: playerShuffled == true,
+  Filter? filter;
+  if (filterStartYear != null && filterStartMonth != null && filterEndYear != null && filterEndMonth != null) {
+    filter = Filter(
+      YearMonth(filterStartYear, filterStartMonth),
+      YearMonth(filterEndYear, filterEndMonth),
     );
   }
-  return null;
+  return InitialPlayerData(
+    filter: filter,
+    position: positionInSeconds == null ? null : Duration(seconds: positionInSeconds),
+    talkId: talkId,
+    shuffled: playerShuffled == true,
+  );
 }

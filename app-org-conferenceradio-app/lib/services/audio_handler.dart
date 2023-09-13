@@ -113,11 +113,13 @@ class PlaylistManager {
       setShuffled(true);
     }
     await _updatePlayer();
+    print(position);
     if (position != null) {
       // can't seek until buffered has started
       late StreamSubscription subscription;
       subscription = _player.bufferedPositionStream.listen((duration) {
         if (duration != Duration.zero) {
+          print(position);
           _player.seek(position);
           subscription.cancel();
         }
