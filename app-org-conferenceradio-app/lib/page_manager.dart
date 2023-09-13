@@ -63,12 +63,8 @@ class PageManager {
 
   void _listenToCurrentPosition() {
     AudioService.position.listen((position) {
-      print("listener $position");
       SharedPreferences.getInstance().then((sharedPreferences) {
-        print("getInstance ${position.inSeconds}");
-        sharedPreferences.setInt(SharedPreferencesKeys.playerPositionInSeconds, position.inSeconds).then((value) {
-          print("getInstance ${position.inSeconds} $value");
-        });
+        sharedPreferences.setInt(SharedPreferencesKeys.playerPositionInSeconds, position.inSeconds);
       });
 
       final oldState = progressNotifier.value;
