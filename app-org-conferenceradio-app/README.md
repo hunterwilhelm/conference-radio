@@ -14,9 +14,9 @@
  - [x] feature: add bookmarked talks
  - [x] feature: add share in other applications
  - [x] feature: save filter to your phone
- - [ ] feature: save where you were and your settings to your phone
- - [ ] feature: add anonymous analytics
+ - [x] feature: save where you were and your settings to your phone
  - [ ] feature: languages
+ - [ ] feature: add anonymous analytics
 
 
 ### Todos Release 2

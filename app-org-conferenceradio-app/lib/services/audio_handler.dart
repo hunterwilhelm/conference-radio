@@ -8,7 +8,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<AudioHandler> initAudioService() async {
+Future<MyAudioHandler> initAudioService() async {
   return await AudioService.init(
     builder: () => MyAudioHandler(),
     config: const AudioServiceConfig(
@@ -97,15 +97,32 @@ class PlaylistManager {
   }
 
   /// Used for loading the tracks. This will reset the current index and position.
-  setQueue(List<MediaItem> mediaItems) async {
+  setQueue(
+    List<MediaItem> mediaItems, {
+    int? index,
+    Duration? position,
+    bool? shuffled,
+  }) async {
     _fullPlaylist.clear();
     _fullPlaylist.addAll(mediaItems);
     _audioSource.clear();
-    _currentIndex = 0;
+    _currentIndex = index ?? 0;
     if (_shuffled) {
       _updateShuffleIndexes();
+    } else if (shuffled == true) {
+      setShuffled(true);
     }
     await _updatePlayer();
+    if (position != null) {
+      // can't seek until buffered has started
+      late StreamSubscription subscription;
+      subscription = _player.bufferedPositionStream.listen((duration) {
+        if (duration != Duration.zero) {
+          _player.seek(position);
+          subscription.cancel();
+        }
+      });
+    }
   }
 
   /// Use this instead of [player.seekToNext]
@@ -130,6 +147,10 @@ class PlaylistManager {
       _currentIndex = _shuffledIndexes[_currentIndex];
     }
     _updatePlayer(force: true);
+
+    SharedPreferences.getInstance().then((sharedPreferences) {
+      sharedPreferences.setBool(SharedPreferencesKeys.playerShuffled, shuffled);
+    });
   }
 
   void _updateShuffleIndexes() {
@@ -158,6 +179,12 @@ class PlaylistManager {
 
     final newMediaItemCurrent = _fullPlaylist[_getFinalIndex(0)];
     mediaItem.add(newMediaItemCurrent);
+
+    SharedPreferences.getInstance().then((sharedPreferences) {
+      final id = int.tryParse(newMediaItemCurrent.id);
+      if (id == null) return;
+      sharedPreferences.setInt(SharedPreferencesKeys.playerTalkId, id);
+    });
 
     if (newIndex == oldIndex && _audioSource.length != 0 && !force) return;
 
@@ -255,9 +282,6 @@ class MyAudioHandler extends BaseAudioHandler {
       mediaItem.add(newMediaItem);
 
       if (duration == null) return;
-      SharedPreferences.getInstance().then((sharedPreferences) {
-        sharedPreferences.setInt(SharedPreferencesKeys.playerPositionInSeconds, duration.inSeconds);
-      });
     }));
   }
 
@@ -284,10 +308,24 @@ class MyAudioHandler extends BaseAudioHandler {
   }
 
   @override
-  Future<void> updateQueue(List<MediaItem> mediaItems) async {
+  Future<void> updateQueue(List<MediaItem> queue) async {
+    throw UnimplementedError("updateQueue");
+  }
+
+  Future<void> setQueue(
+    List<MediaItem> mediaItems, {
+    int? index,
+    Duration? position,
+    bool? shuffled,
+  }) async {
     // notify system
     queue.add(mediaItems);
-    _playlistManager.setQueue(mediaItems);
+    _playlistManager.setQueue(
+      mediaItems,
+      index: index,
+      position: position,
+      shuffled: shuffled,
+    );
   }
 
   @override

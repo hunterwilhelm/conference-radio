@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:collection/collection.dart';
+import 'package:conference_radio_flutter/services/audio_handler.dart';
 import 'package:conference_radio_flutter/services/talks_db_service.dart';
 import 'package:conference_radio_flutter/share_preferences_keys.dart';
 import 'package:conference_radio_flutter/ui/filter_page.dart';
@@ -25,7 +26,7 @@ class PageManager {
   final isLastSongNotifier = ValueNotifier<bool>(true);
   final isShuffleModeEnabledNotifier = ValueNotifier<bool>(false);
 
-  final _audioHandler = getIt<AudioHandler>();
+  final _audioHandler = getIt<MyAudioHandler>();
   final _talkRepository = getIt<TalkRepository>();
 
   // Events: Calls coming from the UI
@@ -62,6 +63,10 @@ class PageManager {
 
   void _listenToCurrentPosition() {
     AudioService.position.listen((position) {
+      SharedPreferences.getInstance().then((sharedPreferences) {
+        sharedPreferences.setInt(SharedPreferencesKeys.playerPositionInSeconds, position.inSeconds);
+      });
+
       final oldState = progressNotifier.value;
       progressNotifier.value = ProgressBarState(
         current: position,
@@ -149,8 +154,9 @@ class PageManager {
   }
 
   Future<void> refreshPlaylist({bool initialLoad = false}) async {
+    InitialPlayerData? initialData;
     if (initialLoad) {
-      final initialData = await getInitialPlayerData();
+      initialData = await getInitialPlayerData();
       if (initialData != null) {
         filterNotifier.value = initialData.filter;
       } else {
@@ -161,18 +167,28 @@ class PageManager {
     final talks = await _talkRepository.fetchTalkPlaylist(
       filter: filterNotifier.value,
     );
-    final talkMediaItems = talks
-        .map((talk) => MediaItem(
-              id: talk.talkId.toString(),
-              album: talk.year.toString(),
-              artist: talk.name,
-              title: talk.title,
-              extras: {'url': talk.mp3},
-              artUri: Uri.tryParse('https://www.conferenceradio.app/app_data/notification_icon.png'),
-            ))
-        .toList();
-    await _audioHandler.updateQueue(talkMediaItems);
+    final talkMediaItems = [
+      for (final talk in talks)
+        MediaItem(
+          id: talk.talkId.toString(),
+          album: talk.year.toString(),
+          artist: talk.name,
+          title: talk.title,
+          extras: {'url': talk.mp3},
+          artUri: Uri.tryParse('https://www.conferenceradio.app/app_data/notification_icon.png'),
+        ),
+    ];
+    final index = initialData == null ? null : talks.indexWhere((element) => element.talkId == initialData?.talkId);
+    await _audioHandler.setQueue(
+      talkMediaItems,
+      index: index == -1 ? null : index,
+      position: initialData?.position,
+      shuffled: initialData?.shuffled,
+    );
     playlistNotifier.value = talks;
+    if (initialData?.shuffled == true) {
+      isShuffleModeEnabledNotifier.value = true;
+    }
   }
 
   void remove() {
@@ -224,22 +240,26 @@ class InitialPlayerData {
   final Duration position;
   final int talkId;
   final Filter filter;
+  final bool shuffled;
 
   InitialPlayerData({
     required this.position,
     required this.talkId,
     required this.filter,
+    required this.shuffled,
   });
 }
 
 Future<InitialPlayerData?> getInitialPlayerData() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   final talkId = sharedPreferences.getInt(SharedPreferencesKeys.playerTalkId);
+  final playerShuffled = sharedPreferences.getBool(SharedPreferencesKeys.playerShuffled);
   final positionInSeconds = sharedPreferences.getInt(SharedPreferencesKeys.playerPositionInSeconds);
   final filterStartYear = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterStartYear);
   final filterStartMonth = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterStartMonth);
   final filterEndYear = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterEndYear);
   final filterEndMonth = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterEndMonth);
+  print(positionInSeconds);
   if (talkId != null && positionInSeconds != null && filterStartYear != null && filterStartMonth != null && filterEndYear != null && filterEndMonth != null) {
     return InitialPlayerData(
       filter: Filter(
@@ -248,6 +268,7 @@ Future<InitialPlayerData?> getInitialPlayerData() async {
       ),
       position: Duration(seconds: positionInSeconds),
       talkId: talkId,
+      shuffled: playerShuffled == true,
     );
   }
   return null;
