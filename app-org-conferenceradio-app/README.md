@@ -18,11 +18,13 @@
  - [x] feature: languages
  - [ ] bug: fix issue with the date labelling in bookmarks
  - [ ] bug: fix album art going to main page
+ - [ ] bug: review to make sure there are no reports in the shuffle
  - [ ] feature: add anonymous analytics
 
 
 ### Todos Release 2
 #### Requirements to begin: 30 monthly active users
+ - [ ] feature: filter by speaker
  - [ ] feature: iOS podcast buttons in the notifications
  - [ ] feature: android podcast buttons in the notifications
  - [ ] feature: fix issue when you hit shuffle while a talk is playing, it restarts the talk
