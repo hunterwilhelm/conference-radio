@@ -1,9 +1,10 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:conference_radio_flutter/routes.dart';
-import 'package:conference_radio_flutter/translation.dart';
 import 'package:conference_radio_flutter/ui/bookmarks_page.dart';
 import 'package:conference_radio_flutter/ui/widgets/play_pause_button.dart';
+import 'package:conference_radio_flutter/utils/get_church_link_from_talk.dart';
+import 'package:conference_radio_flutter/utils/locales.dart';
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -89,9 +90,9 @@ class TopBar extends StatelessWidget {
                   return Text.rich(
                     TextSpan(
                       children: [
-                        const TextSpan(
-                          text: 'PLAYING FROM\n',
-                          style: TextStyle(
+                        TextSpan(
+                          text: '${tr(context).playingFrom}\n',
+                          style: const TextStyle(
                             color: Colors.black,
                             fontSize: 11,
                             fontWeight: FontWeight.w400,
@@ -99,7 +100,7 @@ class TopBar extends StatelessWidget {
                           ),
                         ),
                         TextSpan(
-                          text: '${filter.start.shortLabel} to ${filter.end.shortLabel}',
+                          text: '${filter.start.shortLabel} ${tr(context).toInContextOfDateToDate} ${filter.end.shortLabel}',
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 14,
@@ -128,13 +129,13 @@ class TopBar extends StatelessWidget {
                 onTap: () {
                   context.push(Routes.languagePage.path);
                 },
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    Icon(FluentIcons.globe_12_regular),
-                    SizedBox(width: 10),
-                    Text('Language'),
+                    const Icon(FluentIcons.globe_12_regular),
+                    const SizedBox(width: 10),
+                    Text(tr(context).pageTitleLanguage),
                   ],
                 ),
               ),
@@ -142,13 +143,13 @@ class TopBar extends StatelessWidget {
                 onTap: () {
                   context.push(Routes.filterPage.path);
                 },
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    Icon(FluentIcons.options_16_regular),
-                    SizedBox(width: 10),
-                    Text('Filter'),
+                    const Icon(FluentIcons.options_16_regular),
+                    const SizedBox(width: 10),
+                    Text(tr(context).pageTitleFilter),
                   ],
                 ),
               ),
@@ -190,8 +191,8 @@ class AlbumCover extends StatelessWidget {
                 if (talk == null) {
                   return const CircularProgressIndicator();
                 }
-                final monthAndYear = '${talk.month == 4 ? "April" : "October"}\n${talk.year}';
-                final session = (sessionTranslations[talk.type] ?? talk.type).replaceAll(" ", "\n");
+                final monthAndYear = '${talk.month == 4 ? tr(context).aprilLong : tr(context).octoberLong}\n${talk.year}';
+                final session = (trSession(context, talk.type, "\n"));
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -252,7 +253,7 @@ class TalkDescription extends StatelessWidget {
               SizedBox(
                 height: 35,
                 child: MarqueeWhenOverflowed(
-                  text: talk?.title ?? "Loading...",
+                  text: talk?.title ?? tr(context).loading,
                   style: const TextStyle(
                     color: Colors.black,
                     fontSize: 19,
@@ -266,7 +267,7 @@ class TalkDescription extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.center,
                   child: MarqueeWhenOverflowed(
-                    text: talk?.name ?? "Loading...",
+                    text: talk?.name ?? tr(context).loading,
                     style: const TextStyle(
                       color: Color(0xFF6F6F6F),
                       fontSize: 15,

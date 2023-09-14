@@ -15,7 +15,7 @@
  - [x] feature: add share in other applications
  - [x] feature: save filter to your phone
  - [x] feature: save where you were and your settings to your phone
- - [ ] feature: languages
+ - [x] feature: languages
  - [ ] feature: add anonymous analytics
 
 

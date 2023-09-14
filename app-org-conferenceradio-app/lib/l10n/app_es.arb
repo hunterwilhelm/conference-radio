@@ -1,0 +1,125 @@
+{
+  "@@locale": "es",
+  "welcomeToConferenceRadio": "Bienvenido a\nConference Radio",
+  "enjoyTalks": "Disfruta de los discursos de la Conferencia General ",
+  "onShuffle": "en modo aleatorio",
+  "pressPlayToBegin": "Presiona \"play\" para comenzar",
+  "optIntoAnalytics": "Optar por no dar análisis anónimos",
+  "optOutAnalytics": "Optar por participar en análisis anónimos",
+  "aprilLong": "abril",
+  "aprilShort": "abr",
+  "octoberLong": "octubre",
+  "octoberShort": "oct",
+  "pageTitleLanguage": "Idioma",
+  "pageTitleFilter": "Filtro",
+  "pageTitleLibrary": "Biblioteca",
+  "bookmarkSavedOn": "Guardado",
+  "bookmarkActionOpenInGospelLibrary": "Abrir en la Biblioteca del Evangelio",
+  "bookmarkActionShare": "Compartir",
+  "bookmarkActionRemoveBookmark": "Eliminar marcador",
+  "toInContextOfDateToDate": "hasta",
+  "playingFrom": "REPRODUCIENDO DESDE",
+  "sessionSaturdayMorning": "sábado{breakingChar}por la{breakingChar}mañana",
+  "@sessionSaturdayMorning": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionSaturdayAfternoon": "sábado{breakingChar}por la{breakingChar}tarde",
+  "@sessionSaturdayAfternoon": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionSaturdayEvening": "sábado{breakingChar}por la{breakingChar}noche",
+  "@sessionSaturdayEvening": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionSundayMorning": "domingo{breakingChar}por la{breakingChar}mañana",
+  "@sessionSundayMorning": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionSundayAfternoon": "domingo{breakingChar}por la{breakingChar}tarde",
+  "@sessionSundayAfternoon": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionPriesthood": "Sesión{breakingChar}del{breakingChar}sacerdocio",
+  "@sessionPriesthood": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionWelfare": "Sesión{breakingChar}del bienestar{breakingChar}general",
+  "@sessionWelfare": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionMidweek": "Una sesión{breakingChar}de mitad{breakingChar}de semana",
+  "@sessionMidweek": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionWomens": "Sesión{breakingChar}de{breakingChar}mujeres",
+  "@sessionWomens": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionYoungWomen": "Reunión general{breakingChar}de{breakingChar}jóvenes mujeres",
+  "@sessionYoungWomen": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionBroadcast": "Transmisión{breakingChar}especial",
+  "@sessionBroadcast": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionFireside": "Fireside",
+  "loading": "Cargando...",
+  "pickConference": "Escoger conferencia",
+  "select": "Seleccionar"
+}

@@ -1,7 +1,12 @@
 import 'package:conference_radio_flutter/constants/style_list.dart';
+import 'package:conference_radio_flutter/providers/locale_provider.dart';
 import 'package:conference_radio_flutter/routes.dart';
+import 'package:conference_radio_flutter/share_preferences_keys.dart';
 import 'package:conference_radio_flutter/ui/widgets/custom_app_bar.dart';
+import 'package:conference_radio_flutter/utils/locales.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LanguagePage extends StatelessWidget {
   static const route = Routes.languagePage;
@@ -9,10 +14,19 @@ class LanguagePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localeProv = Provider.of<LocaleProvider>(context, listen: false);
+    final navigator = Navigator.of(context);
+    handleLanguageChange(String languageCode) async {
+      localeProv.set(Locale(languageCode));
+      final sharedPreferences = await SharedPreferences.getInstance();
+      await sharedPreferences.setString(SharedPreferencesKeys.localeLanguageCode, languageCode);
+      navigator.pop();
+    }
+
     return Container(
       decoration: StyleList.backgroundGradient,
       child: Scaffold(
-        appBar: const CustomAppBar(title: "Language"),
+        appBar: CustomAppBar(title: tr(context).pageTitleLanguage),
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Column(
@@ -27,8 +41,8 @@ class LanguagePage extends StatelessWidget {
                         Expanded(
                           child: TextButton(
                             label: 'English',
-                            onClick: () {
-                              Navigator.pop(context);
+                            onClick: () async {
+                              handleLanguageChange('en');
                             },
                           ),
                         ),
@@ -36,7 +50,7 @@ class LanguagePage extends StatelessWidget {
                           child: TextButton(
                             label: 'Español',
                             onClick: () {
-                              Navigator.pop(context);
+                              handleLanguageChange('es');
                             },
                           ),
                         ),
@@ -44,7 +58,7 @@ class LanguagePage extends StatelessWidget {
                           child: TextButton(
                             label: 'Português',
                             onClick: () {
-                              Navigator.pop(context);
+                              handleLanguageChange('pt');
                             },
                           ),
                         ),

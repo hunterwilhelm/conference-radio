@@ -2,6 +2,7 @@ import 'package:conference_radio_flutter/constants/style_list.dart';
 import 'package:conference_radio_flutter/notifiers/filter_notifier.dart';
 import 'package:conference_radio_flutter/routes.dart';
 import 'package:conference_radio_flutter/ui/widgets/custom_app_bar.dart';
+import 'package:conference_radio_flutter/utils/locales.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -19,7 +20,7 @@ class FilterPage extends StatelessWidget {
     return Container(
       decoration: StyleList.backgroundGradient,
       child: Scaffold(
-        appBar: const CustomAppBar(title: "Filter"),
+        appBar: CustomAppBar(title: tr(context).pageTitleFilter),
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Center(
@@ -32,7 +33,7 @@ class FilterPage extends StatelessWidget {
                       builder: (_, filter, __) {
                         return Expanded(
                           child: TextButton(
-                            label: "- ${filter.start.longLabel} -",
+                            label: "- ${filter.start.longLabel(context)} -",
                             onClick: () {
                               showOptions(context, filter.start, (newYearMonth) {
                                 pageManager.updateFilterStart(newYearMonth);
@@ -56,7 +57,7 @@ class FilterPage extends StatelessWidget {
                       builder: (_, filter, __) {
                         return Expanded(
                           child: TextButton(
-                            label: "- ${filter.end.longLabel} -",
+                            label: "- ${filter.end.longLabel(context)} -",
                             onClick: () {
                               showOptions(context, filter.end, (newYearMonth) {
                                 pageManager.updateFilterEnd(newYearMonth);
@@ -145,7 +146,7 @@ class PickConference extends HookWidget {
     );
     final defaultIndex = options.indexWhere((element) => element == defaultYearMonth);
     return AlertDialog(
-      title: const Text("Pick Conference"),
+      title: Text(tr(context).pickConference),
       content: SizedBox(
         height: 200,
         child: CupertinoPicker(
@@ -154,7 +155,7 @@ class PickConference extends HookWidget {
           children: [
             for (final option in options)
               _OptionItem(
-                option.longLabel,
+                option.longLabel(context),
               ),
           ],
           onSelectedItemChanged: (index) {
@@ -171,7 +172,7 @@ class PickConference extends HookWidget {
                 onSubmit(selected.value);
                 Navigator.of(context).pop();
               },
-              child: const Text('Select'),
+              child: Text(tr(context).select),
             ),
           ),
         ),
@@ -181,7 +182,7 @@ class PickConference extends HookWidget {
 }
 
 class YearMonth {
-  String get longLabel => "${month == 4 ? "April" : "October"}, $year";
+  longLabel(BuildContext context) => "${month == 4 ? tr(context).aprilLong : tr(context).octoberLong}, $year";
   String get shortLabel => "$month/$year";
   DateTime get date => DateTime(year, month);
   final int year;

@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SyncService {
-  Future<void> checkForUpdatesAndApply({String lang = "eng"}) async {
+  Future<void> checkForUpdatesAndApply({required String lang}) async {
     final localVersion = await readLocalAppDataVersion();
     // final remoteVersion = await readRemoteAppDataVersion();
     const remoteVersion = 1;

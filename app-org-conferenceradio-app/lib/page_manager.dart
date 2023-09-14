@@ -25,6 +25,7 @@ class PageManager {
   final playButtonNotifier = PlayButtonNotifier();
   final isLastSongNotifier = ValueNotifier<bool>(true);
   final isShuffleModeEnabledNotifier = ValueNotifier<bool>(false);
+  final langNotifier = ValueNotifier<String>("eng");
 
   final _audioHandler = getIt<MyAudioHandler>();
   final _talkRepository = getIt<TalkRepository>();
@@ -104,7 +105,7 @@ class PageManager {
         final talk = playlistNotifier.value.firstWhereOrNull((element) => element.talkId.toString() == mediaItem.id);
         currentTalkNotifier.value = talk;
         if (talk != null) {
-          _talkRepository.getIsBookmarked(talk.talkId).then((value) {
+          _talkRepository.getIsBookmarked(talk.talkId, lang: langNotifier.value).then((value) {
             currentBookmarkNotifier.value = value;
           });
         }
@@ -124,7 +125,7 @@ class PageManager {
   }
 
   void _refreshBookmarks() async {
-    bookmarkListNotifier.value = await _talkRepository.getBookmarkedTalks();
+    bookmarkListNotifier.value = await _talkRepository.getBookmarkedTalks(lang: langNotifier.value);
   }
 
   void play() async {
@@ -161,12 +162,14 @@ class PageManager {
       if (filter != null) {
         filterNotifier.value = filter;
       } else {
-        final maxRange = await _talkRepository.getMaxRange();
+        final maxRange = await _talkRepository.getMaxRange(lang: langNotifier.value);
         filterNotifier.value = Filter(maxRange.end.previous().previous(), maxRange.end);
       }
+      langNotifier.value = initialData.lang;
     }
     final talks = await _talkRepository.fetchTalkPlaylist(
       filter: filterNotifier.value,
+      lang: langNotifier.value,
     );
     final talkMediaItems = [
       for (final talk in talks)
@@ -219,6 +222,14 @@ class PageManager {
     refreshPlaylist();
   }
 
+  void setLang(String lang) {
+    SharedPreferences.getInstance().then((sharedPreferences) {
+      sharedPreferences.setString(SharedPreferencesKeys.playerFilterLang, lang);
+    });
+    langNotifier.value = lang;
+    refreshPlaylist();
+  }
+
   void _saveFilter() {
     SharedPreferences.getInstance().then((sharedPreferences) {
       sharedPreferences.setInt(SharedPreferencesKeys.playerFilterStartYear, filterNotifier.value.start.year);
@@ -231,7 +242,7 @@ class PageManager {
   void bookmark(bool bookmarked, [int? talkId]) {
     final id = talkId ?? currentTalkNotifier.value?.talkId;
     if (id == null) return;
-    _talkRepository.saveBookmark(id, bookmarked);
+    _talkRepository.saveBookmark(id, bookmarked, lang: langNotifier.value);
     currentBookmarkNotifier.value = bookmarked;
     _refreshBookmarks();
   }
@@ -242,12 +253,14 @@ class InitialPlayerData {
   final int? talkId;
   final Filter? filter;
   final bool? shuffled;
+  final String lang;
 
   InitialPlayerData({
     required this.position,
     required this.talkId,
     required this.filter,
     required this.shuffled,
+    required this.lang,
   });
 }
 
@@ -260,6 +273,7 @@ Future<InitialPlayerData> getInitialPlayerData() async {
   final filterStartMonth = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterStartMonth);
   final filterEndYear = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterEndYear);
   final filterEndMonth = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterEndMonth);
+  final lang = sharedPreferences.getString(SharedPreferencesKeys.playerFilterLang) ?? "eng";
   Filter? filter;
   if (filterStartYear != null && filterStartMonth != null && filterEndYear != null && filterEndMonth != null) {
     filter = Filter(
@@ -272,5 +286,6 @@ Future<InitialPlayerData> getInitialPlayerData() async {
     position: positionInSeconds == null ? null : Duration(seconds: positionInSeconds),
     talkId: talkId,
     shuffled: playerShuffled == true,
+    lang: lang,
   );
 }

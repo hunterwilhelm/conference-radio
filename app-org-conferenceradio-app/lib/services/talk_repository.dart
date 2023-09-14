@@ -7,52 +7,52 @@ class TalkRepository {
   late final TalksDbService _talksDbService;
   bool hasInit = false;
   bool initializing = false;
-  Future<Talk?> fetchNextTalk({String? idForSequential, required Filter filter}) async {
-    await ensureInitialized();
+  Future<Talk?> fetchNextTalk({String? idForSequential, required Filter filter, required String lang}) async {
+    await ensureInitialized(lang: lang);
     final id = idForSequential == null ? null : int.tryParse(idForSequential);
     if (id == null) {
-      return _talksDbService.getRandomTalk(filter: filter);
+      return _talksDbService.getRandomTalk(filter: filter, lang: lang);
     } else {
-      return _talksDbService.getNextTalk(id: id, filter: filter);
+      return _talksDbService.getNextTalk(id: id, filter: filter, lang: lang);
     }
   }
 
-  Future<Filter> getMaxRange() async {
-    await ensureInitialized();
-    return _talksDbService.getMaxRange();
+  Future<Filter> getMaxRange({required String lang}) async {
+    await ensureInitialized(lang: lang);
+    return _talksDbService.getMaxRange(lang: lang);
   }
 
-  Future<List<Talk>> fetchTalkPlaylist({required Filter filter}) async {
-    await ensureInitialized();
-    return _talksDbService.getTalkPlaylist(filter: filter);
+  Future<List<Talk>> fetchTalkPlaylist({required Filter filter, required String lang}) async {
+    await ensureInitialized(lang: lang);
+    return _talksDbService.getTalkPlaylist(filter: filter, lang: lang);
   }
 
-  Future<List<Bookmark>> getBookmarkedTalks() async {
-    await ensureInitialized();
-    return _talksDbService.getBookmarkedTalks();
+  Future<List<Bookmark>> getBookmarkedTalks({required String lang}) async {
+    await ensureInitialized(lang: lang);
+    return _talksDbService.getBookmarkedTalks(lang: lang);
   }
 
-  Future<bool> getIsBookmarked(int talkId) async {
-    await ensureInitialized();
+  Future<bool> getIsBookmarked(int talkId, {required String lang}) async {
+    await ensureInitialized(lang: lang);
     return _talksDbService.getIsBookmarked(talkId);
   }
 
-  Future<void> saveBookmark(int id, bool bookmarked) async {
-    await ensureInitialized();
+  Future<void> saveBookmark(int id, bool bookmarked, {required String lang}) async {
+    await ensureInitialized(lang: lang);
     return _talksDbService.saveBookmark(id, bookmarked);
   }
 
-  Future<void> ensureInitialized() async {
+  Future<void> ensureInitialized({required String lang}) async {
     if (initializing) {
       await Future.delayed(const Duration(milliseconds: 1));
-      return ensureInitialized();
+      return ensureInitialized(lang: lang);
     }
     if (!hasInit) {
       initializing = true;
       _talksDbService = await TalksDbService.init();
       initializing = false;
       hasInit = true;
-      await SyncService().checkForUpdatesAndApply();
+      await SyncService().checkForUpdatesAndApply(lang: lang);
     }
   }
 }

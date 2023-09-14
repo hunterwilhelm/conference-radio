@@ -7,4 +7,6 @@ class SharedPreferencesKeys {
   static const playerFilterStartMonth = "player.filter.start.month";
   static const playerFilterEndYear = "player.filter.end.year";
   static const playerFilterEndMonth = "player.filter.end.month";
+  static const playerFilterLang = "player.filter.lang";
+  static const localeLanguageCode = "locale.languageCode";
 }

@@ -4,8 +4,9 @@ import 'package:conference_radio_flutter/page_manager.dart';
 import 'package:conference_radio_flutter/routes.dart';
 import 'package:conference_radio_flutter/services/service_locator.dart';
 import 'package:conference_radio_flutter/services/talks_db_service.dart';
-import 'package:conference_radio_flutter/translation.dart';
 import 'package:conference_radio_flutter/ui/widgets/custom_app_bar.dart';
+import 'package:conference_radio_flutter/utils/get_church_link_from_talk.dart';
+import 'package:conference_radio_flutter/utils/locales.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -28,7 +29,7 @@ class BookmarksPage extends HookWidget {
       decoration: StyleList.backgroundGradient,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: const CustomAppBar(title: "Library"),
+        appBar: CustomAppBar(title: tr(context).pageTitleLibrary),
         body: _BookmarksList(bookmarks.value),
       ),
     );
@@ -41,7 +42,7 @@ class _BookmarksList extends StatelessWidget {
   const _BookmarksList(this.bookmarks);
   @override
   Widget build(BuildContext context) {
-    final sectionFormatter = DateFormat.yMMMd().format;
+    final sectionFormatter = DateFormat.yMMMd(tr(context).localeName).format;
     final bookmarksCount = bookmarks.length;
     final labels = [for (final bookmark in bookmarks) sectionFormatter(bookmark.createdDate)];
     final idToNeedsLabelMap =
@@ -143,7 +144,7 @@ class BookmarkSheet extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.menu_book_rounded),
-            title: const Text('Open In Gospel Library'),
+            title: Text(tr(context).bookmarkActionOpenInGospelLibrary),
             onTap: () {
               final url = Uri.parse(getChurchLinkFromTalk(bookmark.talk));
               launchUrl(url, mode: LaunchMode.externalApplication);
@@ -151,14 +152,14 @@ class BookmarkSheet extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.share),
-            title: const Text('Share'),
+            title: Text(tr(context).bookmarkActionShare),
             onTap: () {
               Share.share(getChurchLinkFromTalk(bookmark.talk));
             },
           ),
           ListTile(
             leading: const Icon(Icons.bookmark),
-            title: const Text('Remove Bookmark'),
+            title: Text(tr(context).bookmarkActionRemoveBookmark),
             onTap: () {
               getIt<PageManager>().bookmark(false, bookmark.talk.talkId);
               Navigator.pop(context);
@@ -241,9 +242,9 @@ class TalkCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final allInformationFormatter = DateFormat.yMMMd().addPattern("'at'").add_jms().format;
+    final allInformationFormatter = DateFormat.yMMMd().add_jms().format;
     final talk = bookmark.talk;
-    monthAndSession() => '${talk.month == 4 ? "Apr" : "Oct"} ${talk.year}: ${sessionTranslations[talk.type] ?? talk.type}';
+    monthAndSession() => '${talk.month == 4 ? tr(context).aprilShort : tr(context).octoberShort} ${talk.year}: ${trSession(context, talk.type)}';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -292,7 +293,7 @@ class TalkCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "Saved on ${allInformationFormatter(bookmark.createdDate)}",
+                  "${tr(context).bookmarkSavedOn} ${allInformationFormatter(bookmark.createdDate)}",
                   style: const TextStyle(
                     fontSize: 15,
                     color: Color(0xFF818181),

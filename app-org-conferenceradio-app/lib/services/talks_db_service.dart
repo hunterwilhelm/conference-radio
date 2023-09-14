@@ -47,7 +47,7 @@ class TalksDbService {
     });
   }
 
-  Future<Talk> getRandomTalk({String lang = "eng", required Filter filter}) async {
+  Future<Talk> getRandomTalk({required String lang, required Filter filter}) async {
     final sortedFilter = filter.asSorted();
     final results = await db.rawQuery("""
 SELECT * FROM `talks` 
@@ -65,14 +65,14 @@ ORDER BY RANDOM() LIMIT 1
     return Talk.fromMap(results[0]);
   }
 
-  Future<Talk?> getNextTalk({String lang = "eng", required int id, required Filter filter}) async {
+  Future<Talk?> getNextTalk({required String lang, required int id, required Filter filter}) async {
     final sortedFilter = filter.asSorted();
     final talkResults = await db.rawQuery(""" SELECT * FROM talks WHERE `id` = ? LIMIT 1 """, [id]);
     final currentTalk = Talk.fromMap(talkResults[0]);
     final talkDate = YearMonth(currentTalk.year, currentTalk.month).date;
     final comparison = talkDate.compareTo(sortedFilter.start.date) + talkDate.compareTo(sortedFilter.end.date);
     if (comparison == -2 || comparison == 2) {
-      return getRandomTalk(filter: filter);
+      return getRandomTalk(filter: filter, lang: lang);
     }
     final results = await db.rawQuery("""
 SELECT * FROM talks
@@ -96,7 +96,7 @@ LIMIT 1
     return Talk.fromMap(results[0]);
   }
 
-  Future<List<Talk>> getTalkPlaylist({String lang = "eng", required Filter filter}) async {
+  Future<List<Talk>> getTalkPlaylist({required String lang, required Filter filter}) async {
     final sortedFilter = filter.asSorted();
     final results = await db.rawQuery("""
 SELECT * FROM talks
@@ -114,7 +114,7 @@ ORDER BY year ASC, month ASC, session_order ASC, talk_order ASC
     return results.map((map) => Talk.fromMap(map)).toList();
   }
 
-  Future<List<Bookmark>> getBookmarkedTalks({String lang = "eng"}) async {
+  Future<List<Bookmark>> getBookmarkedTalks({required String lang}) async {
     try {
       final results = await db.rawQuery("""
 SELECT * FROM bookmarks
@@ -150,7 +150,7 @@ SELECT COUNT(*) as count FROM bookmarks WHERE talk_id = ?
     return results[0]["count"] == 1;
   }
 
-  Future<Filter> getMaxRange({String lang = "eng"}) async {
+  Future<Filter> getMaxRange({required String lang}) async {
     const countQuery = """
 SELECT MAX(year + (CAST(month as REAL) / 20)) as end, MIN(year + (CAST(month as REAL) / 20)) as start FROM talks WHERE lang = ?
 """;

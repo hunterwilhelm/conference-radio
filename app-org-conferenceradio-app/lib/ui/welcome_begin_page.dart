@@ -3,6 +3,7 @@ import 'package:conference_radio_flutter/page_manager.dart';
 import 'package:conference_radio_flutter/routes.dart';
 import 'package:conference_radio_flutter/services/service_locator.dart';
 import 'package:conference_radio_flutter/ui/widgets/play_pause_button.dart';
+import 'package:conference_radio_flutter/utils/locales.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/svg.dart';
@@ -37,12 +38,12 @@ class WelcomeBeginPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Column(
+                    Column(
                       children: [
                         Text(
-                          "Welcome to\nConference Radio",
+                          tr(context).welcomeToConferenceRadio,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.black,
                             fontSize: 25.67,
                             fontWeight: FontWeight.w600,
@@ -50,15 +51,15 @@ class WelcomeBeginPage extends StatelessWidget {
                             height: 1.3,
                           ),
                         ),
-                        SizedBox(height: 38),
+                        const SizedBox(height: 38),
                         SizedBox(
                           width: 194,
                           child: Text.rich(
                             TextSpan(
                               children: [
                                 TextSpan(
-                                  text: 'Enjoy talks from General Conference ',
-                                  style: TextStyle(
+                                  text: tr(context).enjoyTalks,
+                                  style: const TextStyle(
                                     color: Color(0xFF595959),
                                     fontSize: 17,
                                     fontWeight: FontWeight.w500,
@@ -67,8 +68,8 @@ class WelcomeBeginPage extends StatelessWidget {
                                   ),
                                 ),
                                 TextSpan(
-                                  text: 'on shuffle',
-                                  style: TextStyle(
+                                  text: tr(context).onShuffle,
+                                  style: const TextStyle(
                                     color: Color(0xFF595959),
                                     fontSize: 17,
                                     fontWeight: FontWeight.w700,
@@ -86,10 +87,10 @@ class WelcomeBeginPage extends StatelessWidget {
                     ),
                     Column(
                       children: [
-                        const Text(
-                          'Press Play To Begin',
+                        Text(
+                          tr(context).pressPlayToBegin,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Color(0xFF595959),
                             fontSize: 17,
                             fontWeight: FontWeight.w500,
@@ -157,7 +158,7 @@ class AnalyticsOptOutButton extends HookWidget {
       child: Padding(
         padding: const EdgeInsets.only(bottom: 30, top: 30),
         child: Text(
-          optOut.value ? 'Opt out of anonymous analytics' : 'Opt in to anonymous analytics',
+          optOut.value ? tr(context).optIntoAnalytics : tr(context).optOutAnalytics,
           textAlign: TextAlign.center,
           style: const TextStyle(
             color: Color(0xFF595959),

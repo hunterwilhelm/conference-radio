@@ -1,0 +1,125 @@
+{
+  "@@locale": "pt",
+  "welcomeToConferenceRadio": "Bem-vindo a\nConference Radio",
+  "enjoyTalks": "Aproveite os discursos da Conferência Geral ",
+  "onShuffle": "em modo aleatório",
+  "pressPlayToBegin": "Pressione \"play\" para iniciar",
+  "optIntoAnalytics": "Desativar análises anônimas",
+  "optOutAnalytics": "Aceite a análise anônima",
+  "aprilLong": "abril",
+  "aprilShort": "abr",
+  "octoberLong": "outubro",
+  "octoberShort": "out",
+  "pageTitleLanguage": "Linguagem",
+  "pageTitleFilter": "Filtro",
+  "pageTitleLibrary": "Biblioteca",
+  "bookmarkSavedOn": "Salvou",
+  "bookmarkActionOpenInGospelLibrary": "Abrir na Biblioteca do Evangelho",
+  "bookmarkActionShare": "Compartilhar",
+  "bookmarkActionRemoveBookmark": "Excluir favorito",
+  "toInContextOfDateToDate": "a",
+  "playingFrom": "JOGANDO DE",
+  "sessionSaturdayMorning": "manhã{breakingChar}de{breakingChar}sábado",
+  "@sessionSaturdayMorning": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionSaturdayAfternoon": "tarde{breakingChar}de{breakingChar}sábado",
+  "@sessionSaturdayAfternoon": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionSaturdayEvening": "noite{breakingChar}de{breakingChar}sábado",
+  "@sessionSaturdayEvening": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionSundayMorning": "manhã{breakingChar}de{breakingChar}domingo",
+  "@sessionSundayMorning": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionSundayAfternoon": "tarde{breakingChar}de{breakingChar}domingo",
+  "@sessionSundayAfternoon": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionPriesthood": "geral{breakingChar}do{breakingChar}sacerdocio",
+  "@sessionPriesthood": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionWelfare": "Sessão{breakingChar}de bem-estar{breakingChar}geral",
+  "@sessionWelfare": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionMidweek": "Uma sessão{breakingChar}no meio{breakingChar}da semana",
+  "@sessionMidweek": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionWomens": "Sessão{breakingChar}de{breakingChar}mulheres",
+  "@sessionWomens": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionYoungWomen": "Assembleia{breakingChar}geral de{breakingChar}jovens",
+  "@sessionYoungWomen": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionBroadcast": "Transmissão{breakingChar}especial",
+  "@sessionBroadcast": {
+    "placeholders": {
+      "breakingChar": {
+        "type": "String",
+        "example": " "
+      }
+    }
+  },
+  "sessionFireside": "Fireside",
+  "loading": "Carregando...",
+  "pickConference": "Elija conferencia",
+  "select": "Seleccionar"
+}
