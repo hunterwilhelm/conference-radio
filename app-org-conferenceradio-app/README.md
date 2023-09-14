@@ -16,6 +16,8 @@
  - [x] feature: save filter to your phone
  - [x] feature: save where you were and your settings to your phone
  - [x] feature: languages
+ - [ ] bug: fix issue with the date labelling in bookmarks
+ - [ ] bug: fix album art going to main page
  - [ ] feature: add anonymous analytics
 
 
@@ -35,6 +37,7 @@
  
 ### Todos Release 3
 #### Requirements to begin: 100 monthly active users & 1 donation
+ - [ ] feature: add more languages by request
  - [ ] feature: jump to the right paragraph based on where you are in the talk
  - [ ] feature: export data
  - [ ] feature: TBD categories/folders/playlists
