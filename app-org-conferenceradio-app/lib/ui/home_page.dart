@@ -457,18 +457,13 @@ class NextSongButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pageManager = getIt<PageManager>();
-    return ValueListenableBuilder<bool>(
-      valueListenable: pageManager.isLastSongNotifier,
-      builder: (_, isLast, __) {
-        return IconButton(
-          icon: const Icon(
-            FluentIcons.arrow_next_12_filled,
-            size: 30,
-            color: StyleList.bottomRowSecondaryButtonColor,
-          ),
-          onPressed: (isLast) ? null : pageManager.next,
-        );
-      },
+    return IconButton(
+      icon: const Icon(
+        FluentIcons.arrow_next_12_filled,
+        size: 30,
+        color: StyleList.bottomRowSecondaryButtonColor,
+      ),
+      onPressed: pageManager.next,
     );
   }
 }

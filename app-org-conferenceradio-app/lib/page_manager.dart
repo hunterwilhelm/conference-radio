@@ -23,7 +23,6 @@ class PageManager {
   final playlistNotifier = ValueNotifier<List<Talk>>([]);
   final progressNotifier = ProgressNotifier();
   final playButtonNotifier = PlayButtonNotifier();
-  final isLastSongNotifier = ValueNotifier<bool>(true);
   final isShuffleModeEnabledNotifier = ValueNotifier<bool>(false);
   final langNotifier = ValueNotifier<String>("eng");
 
@@ -110,18 +109,7 @@ class PageManager {
           });
         }
       }
-      _updateSkipButtons();
     });
-  }
-
-  void _updateSkipButtons() {
-    final mediaItem = _audioHandler.mediaItem.value;
-    final playlist = _audioHandler.queue.value;
-    if (playlist.length < 2 || mediaItem == null) {
-      isLastSongNotifier.value = true;
-    } else {
-      isLastSongNotifier.value = playlist.last == mediaItem;
-    }
   }
 
   void _refreshBookmarks() async {
