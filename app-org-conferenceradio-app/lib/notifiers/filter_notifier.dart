@@ -10,7 +10,7 @@ class Filter {
   final YearMonth start;
   final YearMonth end;
   Filter asSorted() {
-    if (start.date.compareTo(end.date) > 0) {
+    if (start.isBefore(end)) {
       return this;
     } else {
       return Filter(end, start);
@@ -18,4 +18,9 @@ class Filter {
   }
 
   const Filter(this.start, this.end);
+
+  @override
+  String toString() {
+    return "Filter<{start: $start, end: $end}>";
+  }
 }

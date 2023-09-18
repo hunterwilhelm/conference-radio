@@ -139,11 +139,11 @@ class PickConference extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final selected = useState<YearMonth>(defaultYearMonth);
-
-    final options = generateMonthsBetween(
-      start: const YearMonth(2023, 10),
-      end: const YearMonth(1971, 4),
-    );
+    final maxRange = getIt<PageManager>().maxRangeNotifier.value;
+    final options = useMemoized(() => generateMonthsBetween(
+          start: maxRange.start,
+          end: maxRange.end,
+        ).toList());
     final defaultIndex = options.indexWhere((element) => element == defaultYearMonth);
     return AlertDialog(
       title: Text(tr(context).pickConference),
@@ -209,25 +209,30 @@ class YearMonth {
     }
     return YearMonth(year - 1, 10);
   }
+
+  bool isBefore(YearMonth end) => date.isBefore(end.date);
+  bool isAfter(YearMonth end) => date.isAfter(end.date);
+
+  @override
+  String toString() {
+    return "MonthYear<{$month, $year}>";
+  }
 }
 
-List<YearMonth> generateMonthsBetween({
+Iterable<YearMonth> generateMonthsBetween({
   required YearMonth start,
   required YearMonth end,
-}) {
+}) sync* {
   if ((start.month != 4 && start.month != 10) || (end.month != 4 && end.month != 10)) {
     throw ArgumentError("Invalid month value. Month should be either 4 or 10.");
   }
-
-  List<YearMonth> monthsList = [];
-  final loopStart = start.year * 2 + (start.month == 10 ? 1 : 0);
-  final loopEnd = end.year * 2 + (end.month == 10 ? 1 : 0);
-  for (int i = loopStart; i >= loopEnd; i--) {
-    final currentYear = i ~/ 2;
-    monthsList.add(YearMonth(currentYear, (i % 2 == 0) ? 4 : 10));
+  if (end.isBefore(start)) {
+    throw ArgumentError("Start cannot be before end");
   }
 
-  return monthsList;
+  for (YearMonth current = end; start.isBefore(current) || start == current; current = current.previous()) {
+    yield current;
+  }
 }
 
 class _OptionItem extends StatelessWidget {

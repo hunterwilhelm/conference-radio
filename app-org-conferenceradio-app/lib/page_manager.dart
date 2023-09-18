@@ -20,6 +20,7 @@ class PageManager {
   final currentBookmarkNotifier = ValueNotifier<bool>(false);
   final bookmarkListNotifier = ValueNotifier<List<Bookmark>>([]);
   final filterNotifier = FilterNotifier();
+  final maxRangeNotifier = FilterNotifier();
   final playlistNotifier = ValueNotifier<List<Talk>>([]);
   final progressNotifier = ProgressNotifier();
   final playButtonNotifier = PlayButtonNotifier();
@@ -143,6 +144,9 @@ class PageManager {
   }
 
   Future<void> refreshPlaylist({bool initialLoad = false}) async {
+    final maxRange = await _talkRepository.getMaxRange(lang: langNotifier.value);
+    maxRangeNotifier.value = maxRange;
+
     InitialPlayerData? initialData;
     if (initialLoad) {
       initialData = await getInitialPlayerData();
@@ -150,11 +154,17 @@ class PageManager {
       if (filter != null) {
         filterNotifier.value = filter;
       } else {
-        final maxRange = await _talkRepository.getMaxRange(lang: langNotifier.value);
         filterNotifier.value = Filter(maxRange.end.previous().previous(), maxRange.end);
       }
       langNotifier.value = initialData.lang;
     }
+    if (filterNotifier.value.start.isBefore(maxRange.start)) {
+      filterNotifier.value = Filter(maxRange.start, filterNotifier.value.end);
+    }
+    if (filterNotifier.value.end.isAfter(maxRange.end)) {
+      filterNotifier.value = Filter(filterNotifier.value.start, maxRange.end);
+    }
+
     final talks = await _talkRepository.fetchTalkPlaylist(
       filter: filterNotifier.value,
       lang: langNotifier.value,
@@ -199,13 +209,17 @@ class PageManager {
   }
 
   void updateFilterStart(YearMonth newYearMonth) {
-    filterNotifier.value = Filter(newYearMonth, filterNotifier.value.end);
+    filterNotifier.value = Filter(newYearMonth, filterNotifier.value.end).asSorted();
+    print("updateFilterStart");
+    print(filterNotifier.value);
     _saveFilter();
     refreshPlaylist();
   }
 
   void updateFilterEnd(YearMonth newYearMonth) {
-    filterNotifier.value = Filter(filterNotifier.value.start, newYearMonth);
+    filterNotifier.value = Filter(filterNotifier.value.start, newYearMonth).asSorted();
+    print("updateFilterEnd");
+    print(filterNotifier.value);
     _saveFilter();
     refreshPlaylist();
   }

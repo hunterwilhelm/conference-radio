@@ -57,10 +57,10 @@ AND (year, month) >= (?, ?)
 ORDER BY RANDOM() LIMIT 1
 """, [
       lang,
-      sortedFilter.start.year,
-      sortedFilter.start.month,
       sortedFilter.end.year,
       sortedFilter.end.month,
+      sortedFilter.start.year,
+      sortedFilter.start.month,
     ]);
     return Talk.fromMap(results[0]);
   }
@@ -88,10 +88,10 @@ LIMIT 1
       currentTalk.month,
       currentTalk.sessionOrder,
       currentTalk.talkOrder,
-      sortedFilter.start.year,
-      sortedFilter.start.month,
       sortedFilter.end.year,
       sortedFilter.end.month,
+      sortedFilter.start.year,
+      sortedFilter.start.month,
     ]);
     return Talk.fromMap(results[0]);
   }
@@ -106,10 +106,10 @@ AND (year, month) >= (?, ?)
 ORDER BY year ASC, month ASC, session_order ASC, talk_order ASC
 """, [
       lang,
-      sortedFilter.start.year,
-      sortedFilter.start.month,
       sortedFilter.end.year,
       sortedFilter.end.month,
+      sortedFilter.start.year,
+      sortedFilter.start.month,
     ]);
     return results.map((map) => Talk.fromMap(map)).toList();
   }
