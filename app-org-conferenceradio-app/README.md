@@ -21,6 +21,7 @@
  - [x] bug: review to make sure there are no reports in the shuffle
  - [x] bug: fix issue when the talk is the last talk in the queue and you are on shuffle, it prevents next
  - [x] bug: filter selector showing extra month
+ - [x] bug: reset filter when switching language
  - [ ] feature: add anonymous analytics
 
 
