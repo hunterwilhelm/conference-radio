@@ -17,7 +17,7 @@
  - [x] feature: save where you were and your settings to your phone
  - [x] feature: languages
  - [x] bug: fix issue with the date labelling in bookmarks
- - [ ] bug: fix album art going to main page
+ - [x] bug: fix album art going to main page
  - [ ] bug: review to make sure there are no reports in the shuffle
  - [ ] bug: fix issue when the talk is the last talk in the queue and you are on shuffle, it prevents next
  - [ ] feature: add anonymous analytics
