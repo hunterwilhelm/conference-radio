@@ -45,8 +45,7 @@ class _BookmarksList extends StatelessWidget {
     final sectionFormatter = DateFormat.yMMMd(tr(context).localeName).format;
     final bookmarksCount = bookmarks.length;
     final labels = [for (final bookmark in bookmarks) sectionFormatter(bookmark.createdDate)];
-    final idToNeedsLabelMap =
-        Map<int, bool>.fromEntries(([for (int i = 0; i < bookmarksCount; i++) MapEntry(bookmarks[i].talk.talkId, i == 0 || i + 1 != bookmarksCount && labels[i] != labels[i + 1])]));
+    final idToNeedsLabelMap = Map<int, bool>.fromEntries(([for (int i = 0; i < bookmarksCount; i++) MapEntry(bookmarks[i].talk.talkId, i == 0 || labels[i] != labels[i - 1])]));
 
     final theme = Theme.of(context);
     return Theme(
