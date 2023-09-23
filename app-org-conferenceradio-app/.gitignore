@@ -45,3 +45,8 @@ app.*.map.json
 
 
 .fvm/flutter_sdk
+
+
+# environment
+.env
+upload_ipa.sh

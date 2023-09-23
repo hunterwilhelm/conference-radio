@@ -1,0 +1,7 @@
+#!/bin/bash
+# https://appstoreconnect.apple.com/access/api
+
+echo "Uploading IPA to App Store Connect"
+xcrun altool --upload-app --type ios -f "$1" \
+  --apiKey <KEY_ID> \
+  --apiIssuer <ISSUER_ID>

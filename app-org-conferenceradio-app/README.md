@@ -22,6 +22,7 @@
  - [x] bug: fix issue when the talk is the last talk in the queue and you are on shuffle, it prevents next
  - [x] bug: filter selector showing extra month
  - [x] bug: reset filter when switching language
+ - [ ] bug: weird things happen when you reach the end of the shuffle
  - [ ] feature: add anonymous analytics
 
 
