@@ -131,7 +131,10 @@ class PageManager {
     _audioHandler.skipToPrevious();
   }
 
-  void next() => _audioHandler.skipToNext();
+  Future<void> next() => _audioHandler.skipToNext();
+
+  Stream<bool> get hasNextStream => _audioHandler.hasNextStream;
+  Stream<bool> get hasPreviousStream => _audioHandler.hasPreviousStream;
 
   void shuffle() async {
     final enable = !isShuffleModeEnabledNotifier.value;
@@ -210,16 +213,12 @@ class PageManager {
 
   void updateFilterStart(YearMonth newYearMonth) {
     filterNotifier.value = Filter(newYearMonth, filterNotifier.value.end).asSorted();
-    print("updateFilterStart");
-    print(filterNotifier.value);
     _saveFilter();
     refreshPlaylist();
   }
 
   void updateFilterEnd(YearMonth newYearMonth) {
     filterNotifier.value = Filter(filterNotifier.value.start, newYearMonth).asSorted();
-    print("updateFilterEnd");
-    print(filterNotifier.value);
     _saveFilter();
     refreshPlaylist();
   }

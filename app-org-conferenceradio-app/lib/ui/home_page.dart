@@ -415,15 +415,20 @@ class PreviousSongButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pageManager = getIt<PageManager>();
-    return IconButton(
-      color: StyleList.bottomRowSecondaryButtonColor,
-      icon: const Icon(
-        FluentIcons.arrow_previous_12_filled,
-        color: StyleList.bottomRowSecondaryButtonColor,
-        size: 30,
-      ),
-      onPressed: pageManager.previous,
-    );
+    return StreamBuilder(
+        stream: pageManager.hasPreviousStream,
+        builder: (context, snapshot) {
+          final hasPrevious = snapshot.data ?? true;
+          return IconButton(
+            color: StyleList.bottomRowSecondaryButtonColor,
+            icon: Icon(
+              FluentIcons.arrow_previous_12_filled,
+              color: hasPrevious ? StyleList.bottomRowSecondaryButtonColor : StyleList.bottomRowSecondaryButtonColorInactive,
+              size: 30,
+            ),
+            onPressed: pageManager.previous,
+          );
+        });
   }
 }
 
@@ -457,14 +462,21 @@ class NextSongButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pageManager = getIt<PageManager>();
-    return IconButton(
-      icon: const Icon(
-        FluentIcons.arrow_next_12_filled,
-        size: 30,
-        color: StyleList.bottomRowSecondaryButtonColor,
-      ),
-      onPressed: pageManager.next,
-    );
+    return StreamBuilder<bool>(
+        stream: pageManager.hasNextStream,
+        builder: (context, snapshot) {
+          final hasNext = snapshot.data ?? true;
+          return IconButton(
+            icon: Icon(
+              FluentIcons.arrow_next_12_filled,
+              size: 30,
+              color: hasNext ? StyleList.bottomRowSecondaryButtonColor : StyleList.bottomRowSecondaryButtonColorInactive,
+            ),
+            onPressed: () {
+              pageManager.next();
+            },
+          );
+        });
   }
 }
 

@@ -11,4 +11,5 @@ class StyleList {
 
   static const buttonColor = Color(0xFF244167);
   static const bottomRowSecondaryButtonColor = Color.fromARGB(255, 87, 87, 87);
+  static const bottomRowSecondaryButtonColorInactive = Color.fromARGB(32, 87, 87, 87);
 }

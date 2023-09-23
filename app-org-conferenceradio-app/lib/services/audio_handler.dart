@@ -34,7 +34,7 @@ class PlaylistManager {
   bool _shuffled = false;
 
   /// The full list of media items to pull from
-  final List<MediaItem> _fullPlaylist = [];
+  final BehaviorSubject<List<MediaItem>> _fullPlaylist = BehaviorSubject();
 
   /// Change this if you want the index to not start at the beginning
   static const kDefaultIndex = 0;
@@ -45,8 +45,7 @@ class PlaylistManager {
   bool _ignoreIndexChangedOnce = true;
 
   /// Used for keeping track of both shuffled and normal order
-  int _currentIndex = kDefaultIndex;
-  int get currentIndex => _currentIndex;
+  final _currentIndex = BehaviorSubject.seeded(kDefaultIndex);
 
   int get _playerIndex => _player.currentIndex ?? 0;
 
@@ -63,9 +62,17 @@ class PlaylistManager {
 
   /// The index of the next item to be played
   int get nextIndex => _getFinalIndex(1);
+  Stream<bool> get hasNextStream => Rx.combineLatest2(
+        _fullPlaylist,
+        _currentIndex,
+        (playlist, index) => index < playlist.length - 1,
+      );
 
   /// The index of the previous item in play order
   int get previousIndex => _getFinalIndex(-1);
+  Stream<bool> get hasPreviousStream => _currentIndex.map((index) => index > 0);
+
+  int get currentIndex => _currentIndex.value;
 
   PlaylistManager() {
     _attachAudioSourceToPlayer();
@@ -103,10 +110,9 @@ class PlaylistManager {
     Duration? position,
     bool? shuffled,
   }) async {
-    _fullPlaylist.clear();
-    _fullPlaylist.addAll(mediaItems);
+    _fullPlaylist.value = [...mediaItems];
     _audioSource.clear();
-    _currentIndex = index ?? 0;
+    _currentIndex.value = index ?? 0;
     if (_shuffled) {
       _updateShuffleIndexes();
     } else if (shuffled == true) {
@@ -127,6 +133,9 @@ class PlaylistManager {
 
   /// Use this instead of [player.seekToNext]
   Future<void> seekToNext() async {
+    if (_fullPlaylist.value.length == _currentIndex.value + 1) {
+      return;
+    }
     _player.seek(Duration.zero, index: _playerIndex + 1);
   }
 
@@ -141,10 +150,10 @@ class PlaylistManager {
     _shuffled = shuffled;
     if (shuffled) {
       _updateShuffleIndexes();
-      _currentIndex = 0;
+      _currentIndex.value = 0;
       _audioSource.clear();
     } else {
-      _currentIndex = _shuffledIndexes[_currentIndex];
+      _currentIndex.value = _shuffledIndexes[_currentIndex.value];
     }
     _updatePlayer(force: true);
 
@@ -154,17 +163,17 @@ class PlaylistManager {
   }
 
   void _updateShuffleIndexes() {
-    final indexes = List.generate(_fullPlaylist.length - 1, (index) {
-      if (index >= _currentIndex) return index + 1;
+    final indexes = List.generate(_fullPlaylist.value.length - 1, (index) {
+      if (index >= _currentIndex.value) return index + 1;
       return index;
     });
     shuffle(indexes);
-    indexes.insert(0, _currentIndex);
+    indexes.insert(0, _currentIndex.value);
     _shuffledIndexes = indexes;
   }
 
   int _getRelativeIndex(int offset) {
-    return max(0, min(_currentIndex + offset, _fullPlaylist.length - 1));
+    return max(0, min(_currentIndex.value + offset, _fullPlaylist.value.length - 1));
   }
 
   int _getFinalIndex(int offset) {
@@ -175,9 +184,9 @@ class PlaylistManager {
   Future<void> _updatePlayer({offset = 0, force = false}) async {
     final newIndex = _getRelativeIndex(offset);
     final oldIndex = _currentIndex;
-    _currentIndex = newIndex;
+    _currentIndex.value = newIndex;
 
-    final newMediaItemCurrent = _fullPlaylist[_getFinalIndex(0)];
+    final newMediaItemCurrent = _fullPlaylist.value[_getFinalIndex(0)];
     mediaItem.add(newMediaItemCurrent);
 
     SharedPreferences.getInstance().then((sharedPreferences) {
@@ -188,8 +197,8 @@ class PlaylistManager {
 
     if (newIndex == oldIndex && _audioSource.length != 0 && !force) return;
 
-    final newMediaItemNext = _fullPlaylist[_getFinalIndex(1)];
-    final newMediaItemPrevious = _fullPlaylist[_getFinalIndex(-1)];
+    final newMediaItemNext = _fullPlaylist.value[_getFinalIndex(1)];
+    final newMediaItemPrevious = _fullPlaylist.value[_getFinalIndex(-1)];
     if (_audioSource.length == 0) {
       await _audioSource.add(_createAudioSource(newMediaItemCurrent));
     }
@@ -349,8 +358,10 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToNext() async {
-    _playlistManager.seekToNext();
+    return _playlistManager.seekToNext();
   }
+
+  Stream<bool> get hasNextStream => _playlistManager.hasNextStream;
 
   @override
   Future<void> skipToPrevious() async {
@@ -360,6 +371,8 @@ class MyAudioHandler extends BaseAudioHandler {
       return _playlistManager.seekToPrevious();
     }
   }
+
+  Stream<bool> get hasPreviousStream => _playlistManager.hasPreviousStream;
 
   @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
