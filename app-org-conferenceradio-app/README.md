@@ -24,6 +24,8 @@
  - [x] bug: reset filter when switching language
  - [x] bug: weird things happen when you reach the end of the shuffle
  - [x] feature: add anonymous analytics
+ - [x] feature: add bug report button
+ - [x] feature: add feature request button
 
 
 ### Todos Release 2
