@@ -3,7 +3,7 @@ import 'package:conference_radio_flutter/constants/style_list.dart';
 import 'package:conference_radio_flutter/page_manager.dart';
 import 'package:conference_radio_flutter/routes.dart';
 import 'package:conference_radio_flutter/services/service_locator.dart';
-import 'package:conference_radio_flutter/services/share_service.dart';
+import 'package:conference_radio_flutter/services/launch_service.dart';
 import 'package:conference_radio_flutter/services/talks_db_service.dart';
 import 'package:conference_radio_flutter/ui/widgets/custom_app_bar.dart';
 import 'package:conference_radio_flutter/utils/locales.dart';
@@ -144,14 +144,14 @@ class BookmarkSheet extends StatelessWidget {
               leading: const Icon(Icons.menu_book_rounded),
               title: Text(tr(context).bookmarkActionOpenInGospelLibrary),
               onTap: () {
-                ShareService.openTalkInGospelLibrary(bookmark.talk);
+                LaunchService.openTalkInGospelLibrary(bookmark.talk);
               },
             ),
             ListTile(
               leading: const Icon(Icons.share),
               title: Text(tr(context).bookmarkActionShare),
               onTap: () {
-                ShareService.shareTalk(bookmark.talk);
+                LaunchService.shareTalk(bookmark.talk);
               },
             ),
             ListTile(

@@ -11,6 +11,8 @@
   "pageTitleLanguage": "Idioma",
   "pageTitleFilter": "Filtro",
   "pageTitleLibrary": "Biblioteca",
+  "contextMenuOptionReportBug": "Reportar un error",
+  "contextMenuOptionRequestFeature": "Solicitar una función",
   "bookmarkSavedOn": "Guardado",
   "bookmarkActionOpenInGospelLibrary": "Abrir en la Biblioteca del Evangelio",
   "bookmarkActionShare": "Compartir",

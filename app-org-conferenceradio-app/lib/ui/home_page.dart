@@ -1,7 +1,7 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:conference_radio_flutter/routes.dart';
-import 'package:conference_radio_flutter/services/share_service.dart';
+import 'package:conference_radio_flutter/services/launch_service.dart';
 import 'package:conference_radio_flutter/ui/bookmarks_page.dart';
 import 'package:conference_radio_flutter/ui/widgets/play_pause_button.dart';
 import 'package:conference_radio_flutter/utils/locales.dart';
@@ -55,8 +55,6 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-
-enum SampleItem { itemOne, itemTwo, itemThree }
 
 class TopBar extends StatelessWidget {
   const TopBar({super.key});
@@ -148,6 +146,34 @@ class TopBar extends StatelessWidget {
                     const Icon(FluentIcons.options_16_regular),
                     const SizedBox(width: 10),
                     Text(tr(context).pageTitleFilter),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                onTap: () {
+                  LaunchService.openEmailForBugReport();
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    const Icon(FluentIcons.bug_16_regular),
+                    const SizedBox(width: 10),
+                    Text(tr(context).contextMenuOptionReportBug),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                onTap: () {
+                  LaunchService.openEmailForFeatureRequest();
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    const Icon(FluentIcons.lightbulb_16_regular),
+                    const SizedBox(width: 10),
+                    Text(tr(context).contextMenuOptionRequestFeature),
                   ],
                 ),
               ),
@@ -293,7 +319,7 @@ class ActionButtons extends HookWidget {
                 onPressed: talk == null
                     ? null
                     : () {
-                        ShareService.openTalkInGospelLibrary(talk);
+                        LaunchService.openTalkInGospelLibrary(talk);
                       },
               ),
               IconButton(
@@ -301,7 +327,7 @@ class ActionButtons extends HookWidget {
                 onPressed: talk == null
                     ? null
                     : () {
-                        ShareService.shareTalk(talk);
+                        LaunchService.shareTalk(talk);
                       },
               ),
             ],

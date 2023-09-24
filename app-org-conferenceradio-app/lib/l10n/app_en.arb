@@ -11,6 +11,8 @@
   "pageTitleLanguage": "Language",
   "pageTitleFilter": "Filter",
   "pageTitleLibrary": "Library",
+  "contextMenuOptionReportBug": "Report a bug",
+  "contextMenuOptionRequestFeature": "Request a feature",
   "bookmarkSavedOn": "Saved on",
   "bookmarkActionOpenInGospelLibrary": "Open in Gospel Library",
   "bookmarkActionShare": "Share",
