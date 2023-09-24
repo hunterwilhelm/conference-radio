@@ -22,18 +22,18 @@ class AnalyticsService {
   }
 
   logAddBookmark(Talk talk) {
-    analytics.logEvent(name: "bookmark", parameters: {"talk": talk.toMap(), "action": "add"});
+    analytics.logEvent(name: "bookmark", parameters: {...talk.toMap(), "action": "add"});
   }
 
   logRemoveBookmark(Talk talk) {
-    analytics.logEvent(name: "bookmark", parameters: {"talk": talk.toMap(), "action": "remove"});
+    analytics.logEvent(name: "bookmark", parameters: {...talk.toMap(), "action": "remove"});
   }
 
   logOpenInGospelLibrary(Talk talk) {
-    analytics.logEvent(name: "open_in_gospel_library", parameters: {"talk": talk.toMap()});
+    analytics.logEvent(name: "open_in_gospel_library", parameters: {...talk.toMap()});
   }
 
   logShareTalk(Talk talk) {
-    analytics.logEvent(name: "share_talk", parameters: {"talk": talk.toMap()});
+    analytics.logEvent(name: "share_talk", parameters: {...talk.toMap()});
   }
 }
