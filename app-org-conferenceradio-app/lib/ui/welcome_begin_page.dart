@@ -5,7 +5,6 @@ import 'package:conference_radio_flutter/services/service_locator.dart';
 import 'package:conference_radio_flutter/ui/widgets/play_pause_button.dart';
 import 'package:conference_radio_flutter/utils/locales.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -120,53 +119,11 @@ class WelcomeBeginPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const AnalyticsOptOutButton(),
+                    Container(),
                   ],
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class AnalyticsOptOutButton extends HookWidget {
-  const AnalyticsOptOutButton({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final optOut = useState(false);
-    useEffect(() {
-      SharedPreferences.getInstance().then((sharedPreferences) {
-        optOut.value = sharedPreferences.getBool("opt_out_of_analytics") == true;
-      });
-      return;
-    }, []);
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: () {
-        optOut.value = !optOut.value;
-
-        SharedPreferences.getInstance().then((sharedPreferences) {
-          sharedPreferences.setBool("opt_out_of_analytics", optOut.value);
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 30, top: 30),
-        child: Text(
-          optOut.value ? tr(context).optIntoAnalytics : tr(context).optOutAnalytics,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF595959),
-            fontSize: 15,
-            fontFamily: 'REM',
-            fontWeight: FontWeight.w500,
-            decoration: TextDecoration.underline,
-            letterSpacing: 1.20,
           ),
         ),
       ),
