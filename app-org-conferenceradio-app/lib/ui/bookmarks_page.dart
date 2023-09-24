@@ -120,48 +120,50 @@ class BookmarkSheet extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.grey,
-              borderRadius: BorderRadius.circular(10),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TalkCard(
-              bookmark: bookmark,
-              showAllInformation: true,
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TalkCard(
+                bookmark: bookmark,
+                showAllInformation: true,
+              ),
             ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.menu_book_rounded),
-            title: Text(tr(context).bookmarkActionOpenInGospelLibrary),
-            onTap: () {
-              ShareService.openTalkInGospelLibrary(bookmark.talk);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.share),
-            title: Text(tr(context).bookmarkActionShare),
-            onTap: () {
-              ShareService.shareTalk(bookmark.talk);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.bookmark),
-            title: Text(tr(context).bookmarkActionRemoveBookmark),
-            onTap: () {
-              getIt<PageManager>().bookmark(false, bookmark.talk);
-              Navigator.pop(context);
-            },
-          ),
-        ],
+            ListTile(
+              leading: const Icon(Icons.menu_book_rounded),
+              title: Text(tr(context).bookmarkActionOpenInGospelLibrary),
+              onTap: () {
+                ShareService.openTalkInGospelLibrary(bookmark.talk);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: Text(tr(context).bookmarkActionShare),
+              onTap: () {
+                ShareService.shareTalk(bookmark.talk);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.bookmark),
+              title: Text(tr(context).bookmarkActionRemoveBookmark),
+              onTap: () {
+                getIt<PageManager>().bookmark(false, bookmark.talk);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
