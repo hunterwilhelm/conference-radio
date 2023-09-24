@@ -3,16 +3,14 @@ import 'package:conference_radio_flutter/constants/style_list.dart';
 import 'package:conference_radio_flutter/page_manager.dart';
 import 'package:conference_radio_flutter/routes.dart';
 import 'package:conference_radio_flutter/services/service_locator.dart';
+import 'package:conference_radio_flutter/services/share_service.dart';
 import 'package:conference_radio_flutter/services/talks_db_service.dart';
 import 'package:conference_radio_flutter/ui/widgets/custom_app_bar.dart';
-import 'package:conference_radio_flutter/utils/get_church_link_from_talk.dart';
 import 'package:conference_radio_flutter/utils/locales.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class BookmarksPage extends HookWidget {
   static const route = Routes.bookmarksPage;
@@ -145,22 +143,21 @@ class BookmarkSheet extends StatelessWidget {
             leading: const Icon(Icons.menu_book_rounded),
             title: Text(tr(context).bookmarkActionOpenInGospelLibrary),
             onTap: () {
-              final url = Uri.parse(getChurchLinkFromTalk(bookmark.talk));
-              launchUrl(url, mode: LaunchMode.externalApplication);
+              ShareService.openTalkInGospelLibrary(bookmark.talk);
             },
           ),
           ListTile(
             leading: const Icon(Icons.share),
             title: Text(tr(context).bookmarkActionShare),
             onTap: () {
-              Share.share(getChurchLinkFromTalk(bookmark.talk));
+              ShareService.shareTalk(bookmark.talk);
             },
           ),
           ListTile(
             leading: const Icon(Icons.bookmark),
             title: Text(tr(context).bookmarkActionRemoveBookmark),
             onTap: () {
-              getIt<PageManager>().bookmark(false, bookmark.talk.talkId);
+              getIt<PageManager>().bookmark(false, bookmark.talk);
               Navigator.pop(context);
             },
           ),

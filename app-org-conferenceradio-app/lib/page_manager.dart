@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:collection/collection.dart';
+import 'package:conference_radio_flutter/services/analytics_service.dart';
 import 'package:conference_radio_flutter/services/audio_handler.dart';
 import 'package:conference_radio_flutter/services/talks_db_service.dart';
 import 'package:conference_radio_flutter/share_preferences_keys.dart';
@@ -238,14 +239,21 @@ class PageManager {
       sharedPreferences.setInt(SharedPreferencesKeys.playerFilterEndYear, filterNotifier.value.end.year);
       sharedPreferences.setInt(SharedPreferencesKeys.playerFilterEndMonth, filterNotifier.value.end.month);
     });
+    getIt<AnalyticsService>().logFilterChange(filterNotifier.value);
   }
 
-  void bookmark(bool bookmarked, [int? talkId]) {
-    final id = talkId ?? currentTalkNotifier.value?.talkId;
-    if (id == null) return;
+  void bookmark(bool bookmarked, [Talk? talk]) {
+    final talk_ = talk ?? currentTalkNotifier.value;
+    if (talk_ == null) return;
+    final id = talk_.talkId;
     _talkRepository.saveBookmark(id, bookmarked, lang: langNotifier.value);
     currentBookmarkNotifier.value = bookmarked;
     _refreshBookmarks();
+    if (bookmarked) {
+      getIt<AnalyticsService>().logAddBookmark(talk_);
+    } else {
+      getIt<AnalyticsService>().logRemoveBookmark(talk_);
+    }
   }
 }
 

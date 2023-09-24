@@ -1,9 +1,9 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:conference_radio_flutter/routes.dart';
+import 'package:conference_radio_flutter/services/share_service.dart';
 import 'package:conference_radio_flutter/ui/bookmarks_page.dart';
 import 'package:conference_radio_flutter/ui/widgets/play_pause_button.dart';
-import 'package:conference_radio_flutter/utils/get_church_link_from_talk.dart';
 import 'package:conference_radio_flutter/utils/locales.dart';
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -11,8 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marquee/marquee.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/style_list.dart';
 import '../notifiers/filter_notifier.dart';
@@ -295,8 +293,7 @@ class ActionButtons extends HookWidget {
                 onPressed: talk == null
                     ? null
                     : () {
-                        final url = Uri.parse(getChurchLinkFromTalk(talk));
-                        launchUrl(url, mode: LaunchMode.externalApplication);
+                        ShareService.openTalkInGospelLibrary(talk);
                       },
               ),
               IconButton(
@@ -304,7 +301,7 @@ class ActionButtons extends HookWidget {
                 onPressed: talk == null
                     ? null
                     : () {
-                        Share.share(getChurchLinkFromTalk(talk));
+                        ShareService.shareTalk(talk);
                       },
               ),
             ],

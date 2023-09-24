@@ -217,6 +217,13 @@ class YearMonth {
   String toString() {
     return "MonthYear<{$month, $year}>";
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "month": month,
+      "year": year,
+    };
+  }
 }
 
 Iterable<YearMonth> generateMonthsBetween({

@@ -3,6 +3,8 @@ import 'dart:math' show max, min;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:collection/collection.dart';
+import 'package:conference_radio_flutter/services/analytics_service.dart';
+import 'package:conference_radio_flutter/services/service_locator.dart';
 import 'package:conference_radio_flutter/share_preferences_keys.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
@@ -182,8 +184,13 @@ class PlaylistManager {
   }
 
   Future<void> _updatePlayer({offset = 0, force = false}) async {
+    if (offset == 1) {
+      getIt<AnalyticsService>().logNext(_shuffled);
+    } else if (offset == -1) {
+      getIt<AnalyticsService>().logPrevious(_shuffled);
+    }
     final newIndex = _getRelativeIndex(offset);
-    final oldIndex = _currentIndex;
+    final oldIndex = _currentIndex.value;
     _currentIndex.value = newIndex;
 
     final newMediaItemCurrent = _fullPlaylist.value[_getFinalIndex(0)];

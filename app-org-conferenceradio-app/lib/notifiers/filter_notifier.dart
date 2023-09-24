@@ -23,4 +23,11 @@ class Filter {
   String toString() {
     return "Filter<{start: $start, end: $end}>";
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "start": start.toJson(),
+      "end": end.toJson(),
+    };
+  }
 }

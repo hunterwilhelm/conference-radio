@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1076127353974",
+    "project_id": "arched-catwalk-301504",
+    "storage_bucket": "arched-catwalk-301504.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1076127353974:android:67379ce90ffaed92046357",
+        "android_client_info": {
+          "package_name": "org.conferenceradio.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1076127353974-qf1abesh41bgadhab1p3ij6l3iu0rtfl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.conferenceradio.app",
+            "certificate_hash": "2011953baa84208bb3005ebe839dcf132d6dd311"
+          }
+        },
+        {
+          "client_id": "1076127353974-g3u9hdcosq6psia8o7jht7pu6e8crfg6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCY8cu6db5e2atY--DXoRAAlSLMiYwPRGE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1076127353974-g3u9hdcosq6psia8o7jht7pu6e8crfg6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1076127353974-53p9o65jde2da7ah5bk2o88u9f1s13ag.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "org.conferenceradio.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

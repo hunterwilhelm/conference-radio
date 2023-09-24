@@ -1,3 +1,4 @@
+import 'package:conference_radio_flutter/services/analytics_service.dart';
 import 'package:get_it/get_it.dart';
 
 import '../page_manager.dart';
@@ -13,4 +14,5 @@ Future<void> setupServiceLocator() async {
 
   // page state
   getIt.registerLazySingleton<PageManager>(() => PageManager());
+  getIt.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
 }

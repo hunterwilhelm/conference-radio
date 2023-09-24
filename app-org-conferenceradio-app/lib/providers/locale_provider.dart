@@ -1,3 +1,5 @@
+import 'package:conference_radio_flutter/services/analytics_service.dart';
+import 'package:conference_radio_flutter/services/service_locator.dart';
 import 'package:conference_radio_flutter/share_preferences_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,5 +25,6 @@ class LocaleProvider extends ChangeNotifier {
   void set(Locale locale) {
     _locale = locale;
     notifyListeners();
+    getIt<AnalyticsService>().logLanguageChange(locale.languageCode);
   }
 }

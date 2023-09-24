@@ -50,3 +50,9 @@ app.*.map.json
 # environment
 .env
 upload_ipa.sh
+
+
+# Flutter Fire
+firebase_options.dart
+firebase_app_id_file.json
+GoogleService-Info.plist
