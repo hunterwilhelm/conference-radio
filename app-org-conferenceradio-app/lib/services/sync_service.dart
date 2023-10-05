@@ -10,8 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SyncService {
   Future<void> checkForUpdatesAndApply({required String lang}) async {
     final localVersion = await readLocalAppDataVersion();
-    // final remoteVersion = await readRemoteAppDataVersion();
-    const remoteVersion = 1;
+    final remoteVersion = await readRemoteAppDataVersion();
 
     if (remoteVersion != localVersion) {
       await saveLocalVersion(remoteVersion);
