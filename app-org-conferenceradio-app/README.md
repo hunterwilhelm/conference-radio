@@ -27,7 +27,7 @@
  - [x] feature: add bug report button
  - [x] feature: add feature request button
 
- ### Todos Release 1.0.4
+ ### Todos Release 1.0.3
  - [x] bug: talks not updating when launching
  - [x] bug: analytics not working for change filter
  - [x] bug: fixed bug that was making it forget where you left off
