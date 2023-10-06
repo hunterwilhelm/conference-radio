@@ -43,7 +43,7 @@ class PageManager {
   }
 
   Future<void> _loadPlaylist() async {
-    refreshPlaylist(initialLoad: true);
+    refreshPlaylist(initialData: await getInitialPlayerData());
   }
 
   void _listenToPlaybackState() {
@@ -147,13 +147,11 @@ class PageManager {
     }
   }
 
-  Future<void> refreshPlaylist({bool initialLoad = false}) async {
+  Future<void> refreshPlaylist({InitialPlayerData? initialData}) async {
     final maxRange = await _talkRepository.getMaxRange(lang: langNotifier.value);
     maxRangeNotifier.value = maxRange;
 
-    InitialPlayerData? initialData;
-    if (initialLoad) {
-      initialData = await getInitialPlayerData();
+    if (initialData != null) {
       final filter = initialData.filter;
       if (filter != null) {
         filterNotifier.value = filter;
@@ -184,7 +182,7 @@ class PageManager {
           artUri: Uri.tryParse('https://www.conferenceradio.app/app_data/notification_icon.png'),
         ),
     ];
-    final index = initialData == null ? null : talks.indexWhere((element) => element.talkId == initialData?.talkId);
+    final index = initialData == null ? null : talks.indexWhere((element) => element.talkId == initialData.talkId);
     await _audioHandler.setQueue(
       talkMediaItems,
       index: index == -1 ? null : index,

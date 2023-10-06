@@ -30,6 +30,7 @@
  ### Todos Release 1.0.4
  - [x] bug: talks not updating when launching
  - [x] bug: analytics not working for change filter
+ - [x] bug: fixed bug that was making it forget where you left off
 
 
 ### Todos Release 2
