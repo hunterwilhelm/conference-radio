@@ -14,7 +14,7 @@ class AnalyticsService {
   }
 
   logFilterChange(Filter filter) {
-    analytics.logEvent(name: "filter_change", parameters: filter.toJson());
+    analytics.logEvent(name: "filter_change", parameters: {"filter": filter.toString()});
   }
 
   logLanguageChange(String lang) {
