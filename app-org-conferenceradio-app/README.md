@@ -27,6 +27,10 @@
  - [x] feature: add bug report button
  - [x] feature: add feature request button
 
+ ### Todos Release 1.0.4
+ - [x] bug: talks not updating when launching
+ - [x] bug: analytics not working for change filter
+
 
 ### Todos Release 2
 #### Requirements to begin: 30 monthly active users
