@@ -214,7 +214,7 @@ class Talk {
     return "Instance of Talk <${toMap().toString()}>";
   }
 
-  Map<String, Object?> toMap() {
+  Map<String, Object> toMap() {
     return {
       "talk_id": talkId,
       "lang": lang,

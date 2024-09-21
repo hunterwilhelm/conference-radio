@@ -10,7 +10,6 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
-import 'package:marquee/marquee.dart';
 
 import '../constants/style_list.dart';
 import '../notifiers/filter_notifier.dart';
@@ -19,6 +18,7 @@ import '../notifiers/progress_notifier.dart';
 import '../page_manager.dart';
 import '../services/service_locator.dart';
 import '../services/talks_db_service.dart';
+import 'widgets/marquee.dart';
 
 class HomePage extends StatelessWidget {
   static const route = Routes.homePage;
