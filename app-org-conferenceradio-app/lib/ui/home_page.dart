@@ -367,7 +367,7 @@ class MarqueeWhenOverflowed extends StatelessWidget {
 }
 
 class AudioProgressBar extends StatelessWidget {
-  const AudioProgressBar({Key? key}) : super(key: key);
+  const AudioProgressBar({super.key});
   @override
   Widget build(BuildContext context) {
     final pageManager = getIt<PageManager>();
@@ -379,6 +379,10 @@ class AudioProgressBar extends StatelessWidget {
           buffered: value.buffered,
           total: value.total,
           onSeek: pageManager.seek,
+          thumbColor: StyleList.buttonColor,
+          baseBarColor: const Color.fromARGB(255, 190, 203, 219),
+          bufferedBarColor: const Color.fromARGB(125, 132, 176, 230),
+          progressBarColor: StyleList.buttonColor,
         );
       },
     );
@@ -386,7 +390,7 @@ class AudioProgressBar extends StatelessWidget {
 }
 
 class AudioControlButtons extends StatelessWidget {
-  const AudioControlButtons({Key? key}) : super(key: key);
+  const AudioControlButtons({super.key});
   @override
   Widget build(BuildContext context) {
     return const Row(
@@ -434,7 +438,7 @@ class BookmarkButton extends StatelessWidget {
 }
 
 class PreviousSongButton extends StatelessWidget {
-  const PreviousSongButton({Key? key}) : super(key: key);
+  const PreviousSongButton({super.key});
   @override
   Widget build(BuildContext context) {
     final pageManager = getIt<PageManager>();
@@ -481,7 +485,7 @@ class PlayButton extends StatelessWidget {
 }
 
 class NextSongButton extends StatelessWidget {
-  const NextSongButton({Key? key}) : super(key: key);
+  const NextSongButton({super.key});
   @override
   Widget build(BuildContext context) {
     final pageManager = getIt<PageManager>();
@@ -504,7 +508,7 @@ class NextSongButton extends StatelessWidget {
 }
 
 class ShuffleButton extends StatelessWidget {
-  const ShuffleButton({Key? key}) : super(key: key);
+  const ShuffleButton({super.key});
   @override
   Widget build(BuildContext context) {
     final pageManager = getIt<PageManager>();
