@@ -71,6 +71,8 @@ dependencies:
   # broken stuff
   win32: ^5.5.3
   fading_edge_scrollview: ^4.1.1
+  flutter_typeahead: ^5.2.0
+
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.0

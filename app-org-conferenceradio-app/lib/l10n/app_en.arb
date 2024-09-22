@@ -9,7 +9,7 @@
   "octoberLong": "October",
   "octoberShort": "Oct",
   "pageTitleLanguage": "Language",
-  "pageTitleFilter": "Filter",
+  "pageTitleFilter": "Filters",
   "pageTitleLibrary": "Library",
   "contextMenuOptionReportBug": "Report a bug",
   "contextMenuOptionRequestFeature": "Request a feature",
@@ -17,7 +17,22 @@
   "bookmarkActionOpenInGospelLibrary": "Open in Gospel Library",
   "bookmarkActionShare": "Share",
   "bookmarkActionRemoveBookmark": "Remove Bookmark",
-  "toInContextOfDateToDate": "to",
+  "fromInContextOfFromDateToDate": "from",
+  "toInContextOfFromDateToDate": "to",
+  "filterBySpeaker": "Filter by Speaker",
+  "filterBetweenDates": "Filter Between Dates",
+  "searchForSpeakerPlaceholder": "Search for a speaker",
+  "speakerNoResultsHelpMessage": "Looking for someone else? Try disabling your date filter.",
+  "nTalksAvailable": "{count, plural, =0{No talks available} =1{1 talk available} other{{count} talks available}}",
+  "@nTalksAvailable": {
+    "description": "A plural message",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "playingFrom": "PLAYING FROM",
   "sessionSaturdayMorning": "Saturday{breakingChar}Morning{breakingChar}Session",
   "@sessionSaturdayMorning": {

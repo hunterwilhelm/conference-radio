@@ -5,8 +5,11 @@ class SharedPreferencesKeys {
   static const playerPositionInSeconds = "player.position_in_seconds";
   static const playerFilterStartYear = "player.filter.start.year";
   static const playerFilterStartMonth = "player.filter.start.month";
+  static const playerFilterDateEnabled = "player.filter.date.enabled";
   static const playerFilterEndYear = "player.filter.end.year";
   static const playerFilterEndMonth = "player.filter.end.month";
+  static const playerFilterSpeaker = "player.filter.speaker";
+  static const playerFilterSpeakerEnabled = "player.filter.speaker.enabled";
   static const playerFilterLang = "player.filter.lang";
   static const localeLanguageCode = "locale.languageCode";
 }

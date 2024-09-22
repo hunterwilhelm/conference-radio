@@ -7,17 +7,8 @@ class TalkRepository {
   late final TalksDbService _talksDbService;
   bool hasInit = false;
   bool initializing = false;
-  Future<Talk?> fetchNextTalk({String? idForSequential, required Filter filter, required String lang}) async {
-    await ensureInitialized(lang: lang);
-    final id = idForSequential == null ? null : int.tryParse(idForSequential);
-    if (id == null) {
-      return _talksDbService.getRandomTalk(filter: filter, lang: lang);
-    } else {
-      return _talksDbService.getNextTalk(id: id, filter: filter, lang: lang);
-    }
-  }
 
-  Future<Filter> getMaxRange({required String lang}) async {
+  Future<DateFilter> getMaxRange({required String lang}) async {
     await ensureInitialized(lang: lang);
     return _talksDbService.getMaxRange(lang: lang);
   }
@@ -40,6 +31,16 @@ class TalkRepository {
   Future<void> saveBookmark(int id, bool bookmarked, {required String lang}) async {
     await ensureInitialized(lang: lang);
     return _talksDbService.saveBookmark(id, bookmarked);
+  }
+
+  Future<List<SpeakerResult>> getAllSpeakers({required String lang}) async {
+    await ensureInitialized(lang: lang);
+    return _talksDbService.getAllSpeakers(lang: lang);
+  }
+
+  Future<List<SpeakerResult>> getFilteredSpeakers(Filter filter, {required String lang}) async {
+    await ensureInitialized(lang: lang);
+    return _talksDbService.getFilteredSpeakers(dateFilter: filter.dateFilter, lang: lang);
   }
 
   Future<void> ensureInitialized({required String lang}) async {

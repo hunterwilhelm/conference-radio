@@ -9,7 +9,7 @@
   "octoberLong": "outubro",
   "octoberShort": "out",
   "pageTitleLanguage": "Linguagem",
-  "pageTitleFilter": "Filtro",
+  "pageTitleFilter": "Filtros",
   "pageTitleLibrary": "Biblioteca",
   "contextMenuOptionReportBug": "Reportar um erro",
   "contextMenuOptionRequestFeature": "Solicitar uma funcionalidade",
@@ -17,7 +17,22 @@
   "bookmarkActionOpenInGospelLibrary": "Abrir na Biblioteca do Evangelho",
   "bookmarkActionShare": "Compartilhar",
   "bookmarkActionRemoveBookmark": "Excluir favorito",
-  "toInContextOfDateToDate": "a",
+  "fromInContextOfFromDateToDate": "de",
+  "toInContextOfFromDateToDate": "a",
+  "filterBySpeaker": "Filtrar Por Orador",
+  "filterBetweenDates": "Filtrar entre datas",
+  "searchForSpeakerPlaceholder": "Procurar por um orador",
+  "speakerNoResultsHelpMessage": "Procurando por outra pessoa? Tente desativar seu filtro de data.",
+  "nTalksAvailable": "{count, plural, =0{Nenhum discurso disponível} =1{1 discurso disponível} other{{count} discursos disponíveis}}",
+  "@nTalksAvailable": {
+    "description": "A plural message",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "playingFrom": "JOGANDO DE",
   "sessionSaturdayMorning": "manhã{breakingChar}de{breakingChar}sábado",
   "@sessionSaturdayMorning": {

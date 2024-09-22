@@ -47,69 +47,30 @@ class TalksDbService {
     });
   }
 
-  Future<Talk> getRandomTalk({required String lang, required Filter filter}) async {
-    final sortedFilter = filter.asSorted();
-    final results = await db.rawQuery("""
-SELECT * FROM `talks` 
-WHERE `lang` = ? 
-AND (year, month) <= (?, ?)
-AND (year, month) >= (?, ?)
-ORDER BY RANDOM() LIMIT 1
-""", [
-      lang,
-      sortedFilter.end.year,
-      sortedFilter.end.month,
-      sortedFilter.start.year,
-      sortedFilter.start.month,
-    ]);
-    return Talk.fromMap(results[0]);
-  }
-
-  Future<Talk?> getNextTalk({required String lang, required int id, required Filter filter}) async {
-    final sortedFilter = filter.asSorted();
-    final talkResults = await db.rawQuery(""" SELECT * FROM talks WHERE `id` = ? LIMIT 1 """, [id]);
-    final currentTalk = Talk.fromMap(talkResults[0]);
-    final talkDate = YearMonth(currentTalk.year, currentTalk.month).date;
-    final comparison = talkDate.compareTo(sortedFilter.start.date) + talkDate.compareTo(sortedFilter.end.date);
-    if (comparison == -2 || comparison == 2) {
-      return getRandomTalk(filter: filter, lang: lang);
-    }
-    final results = await db.rawQuery("""
-SELECT * FROM talks
-WHERE `lang` = ? 
-AND (year, month, session_order, talk_order) < (?, ?, ?, ?)
-AND (year, month) <= (?, ?)
-AND (year, month) >= (?, ?)
-ORDER BY year DESC, month DESC, session_order DESC, talk_order DESC
-LIMIT 1
-""", [
-      lang,
-      currentTalk.year,
-      currentTalk.month,
-      currentTalk.sessionOrder,
-      currentTalk.talkOrder,
-      sortedFilter.end.year,
-      sortedFilter.end.month,
-      sortedFilter.start.year,
-      sortedFilter.start.month,
-    ]);
-    return Talk.fromMap(results[0]);
-  }
-
   Future<List<Talk>> getTalkPlaylist({required String lang, required Filter filter}) async {
-    final sortedFilter = filter.asSorted();
+    final dateFilter = filter.dateFilter;
+    final sortedDateFilter = dateFilter.asSorted();
+    final ignoreDateFilter = !dateFilter.enabled;
+    final ignoreSpeakerFilter = !filter.filterBySpeakerEnabled;
     final results = await db.rawQuery("""
 SELECT * FROM talks
 WHERE `lang` = ? 
-AND (year, month) <= (?, ?)
-AND (year, month) >= (?, ?)
+AND (? OR (
+  (year, month) <= (?, ?) AND (year, month) >= (?, ?)
+))
+AND (? OR (
+  name = ?
+))
 ORDER BY year ASC, month ASC, session_order ASC, talk_order ASC
 """, [
       lang,
-      sortedFilter.end.year,
-      sortedFilter.end.month,
-      sortedFilter.start.year,
-      sortedFilter.start.month,
+      ignoreDateFilter,
+      sortedDateFilter.end.year,
+      sortedDateFilter.end.month,
+      sortedDateFilter.start.year,
+      sortedDateFilter.start.month,
+      ignoreSpeakerFilter,
+      filter.filterBySpeaker,
     ]);
     return results.map((map) => Talk.fromMap(map)).toList();
   }
@@ -150,7 +111,7 @@ SELECT COUNT(*) as count FROM bookmarks WHERE talk_id = ?
     return results[0]["count"] == 1;
   }
 
-  Future<Filter> getMaxRange({required String lang}) async {
+  Future<DateFilter> getMaxRange({required String lang}) async {
     const countQuery = """
 SELECT MAX(year + (CAST(month as REAL) / 20)) as end, MIN(year + (CAST(month as REAL) / 20)) as start FROM talks WHERE lang = ?
 """;
@@ -161,7 +122,42 @@ SELECT MAX(year + (CAST(month as REAL) / 20)) as end, MIN(year + (CAST(month as 
     final end = results[0]["end"] as double;
     final endYear = end.floor();
     final endMonth = ((end - endYear) * 20).toInt();
-    return Filter(YearMonth(startYear, startMonth), YearMonth(endYear, endMonth));
+    return DateFilter(YearMonth(startYear, startMonth), YearMonth(endYear, endMonth));
+  }
+
+  Future<List<SpeakerResult>> getAllSpeakers({required String lang}) async {
+    final results = await db.rawQuery("""
+SELECT name, COUNT(*) AS count
+FROM talks
+WHERE talks.`lang` = ? 
+GROUP BY name
+""", [
+      lang,
+    ]);
+    return results.map((map) => (count: map["count"] as int, name: map["name"] as String)).toList();
+  }
+
+  Future<List<SpeakerResult>> getFilteredSpeakers({DateFilter? dateFilter, required String lang}) async {
+    if (dateFilter == null || !dateFilter.enabled) {
+      return getAllSpeakers(lang: lang);
+    }
+    final results = await db.rawQuery(
+      """
+SELECT name, COUNT(*) AS count
+FROM talks
+WHERE talks.`lang` = ? 
+AND (year, month) <= (?, ?) AND (year, month) >= (?, ?)
+GROUP BY name
+""",
+      [
+        lang,
+        dateFilter.end.year,
+        dateFilter.end.month,
+        dateFilter.start.year,
+        dateFilter.start.month,
+      ],
+    );
+    return results.map((map) => (count: map["count"] as int, name: map["name"] as String)).toList();
   }
 }
 
@@ -246,3 +242,5 @@ class Talk {
     );
   }
 }
+
+typedef SpeakerResult = ({int count, String name});

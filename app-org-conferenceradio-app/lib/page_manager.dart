@@ -7,6 +7,7 @@ import 'package:conference_radio_flutter/services/talks_db_service.dart';
 import 'package:conference_radio_flutter/share_preferences_keys.dart';
 import 'package:conference_radio_flutter/ui/filter_page.dart';
 import 'package:flutter/foundation.dart';
+import 'package:quiver/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'notifiers/filter_notifier.dart';
@@ -21,7 +22,9 @@ class PageManager {
   final currentBookmarkNotifier = ValueNotifier<bool>(false);
   final bookmarkListNotifier = ValueNotifier<List<Bookmark>>([]);
   final filterNotifier = FilterNotifier();
-  final maxRangeNotifier = FilterNotifier();
+  final maxRangeNotifier = DateFilterNotifier();
+  final filteredSpeakersNotifier = ValueNotifier<List<SpeakerResult>>([]);
+  final talkCountAvailableNotifier = ValueNotifier<int>(0);
   final playlistNotifier = ValueNotifier<List<Talk>>([]);
   final progressNotifier = ProgressNotifier();
   final playButtonNotifier = PlayButtonNotifier();
@@ -150,21 +153,27 @@ class PageManager {
   Future<void> refreshPlaylist({InitialPlayerData? initialData}) async {
     final maxRange = await _talkRepository.getMaxRange(lang: langNotifier.value);
     maxRangeNotifier.value = maxRange;
+    final filteredSpeakers = await _talkRepository.getFilteredSpeakers(filterNotifier.value, lang: langNotifier.value);
+    filteredSpeakersNotifier.value = filteredSpeakers;
 
     if (initialData != null) {
-      final filter = initialData.filter;
-      if (filter != null) {
-        filterNotifier.value = filter;
+      final dateFilter = initialData.filter?.dateFilter;
+      if (dateFilter != null) {
+        _updateDateFilter(dateFilter);
       } else {
-        filterNotifier.value = Filter(maxRange.end.previous().previous(), maxRange.end);
+        _updateDateFilter(DateFilter(maxRange.end.previous().previous(), maxRange.end));
       }
+      filterNotifier.value = filterNotifier.value.copyWith(
+        filterBySpeaker: initialData.filter?.filterBySpeaker,
+        filterBySpeakerEnabled: initialData.filter?.filterBySpeakerEnabled ?? initialData.filter?.filterBySpeaker != null,
+      );
       langNotifier.value = initialData.lang;
     }
-    if (filterNotifier.value.start.isBefore(maxRange.start)) {
-      filterNotifier.value = Filter(maxRange.start, filterNotifier.value.end);
+    if (filterNotifier.value.dateFilter.start.isBefore(maxRange.start)) {
+      _updateDateFilter(DateFilter(maxRange.start, filterNotifier.value.dateFilter.end));
     }
-    if (filterNotifier.value.end.isAfter(maxRange.end)) {
-      filterNotifier.value = Filter(filterNotifier.value.start, maxRange.end);
+    if (filterNotifier.value.dateFilter.end.isAfter(maxRange.end)) {
+      _updateDateFilter(DateFilter(filterNotifier.value.dateFilter.start, maxRange.end));
     }
 
     final talks = await _talkRepository.fetchTalkPlaylist(
@@ -193,6 +202,7 @@ class PageManager {
     if (initialData?.shuffled == true) {
       isShuffleModeEnabledNotifier.value = true;
     }
+    talkCountAvailableNotifier.value = talks.length;
   }
 
   void remove() {
@@ -210,14 +220,36 @@ class PageManager {
     await _audioHandler.stop();
   }
 
+  void _updateDateFilter(DateFilter dateFilter) {
+    filterNotifier.value = filterNotifier.value.copyWith(dateFilter: dateFilter);
+  }
+
+  void updateDateFilterEnabled(bool enabled) {
+    _updateDateFilter(filterNotifier.value.dateFilter.copyWith(enabled: enabled));
+    _saveFilter();
+    refreshPlaylist();
+  }
+
   void updateFilterStart(YearMonth newYearMonth) {
-    filterNotifier.value = Filter(newYearMonth, filterNotifier.value.end).asSorted();
+    _updateDateFilter(DateFilter(newYearMonth, filterNotifier.value.dateFilter.end).asSorted());
     _saveFilter();
     refreshPlaylist();
   }
 
   void updateFilterEnd(YearMonth newYearMonth) {
-    filterNotifier.value = Filter(filterNotifier.value.start, newYearMonth).asSorted();
+    _updateDateFilter(DateFilter(filterNotifier.value.dateFilter.start, newYearMonth).asSorted());
+    _saveFilter();
+    refreshPlaylist();
+  }
+
+  void updateFilterSpeaker(String? speaker) {
+    filterNotifier.value = filterNotifier.value.copyWith(filterBySpeaker: speaker);
+    _saveFilter();
+    refreshPlaylist();
+  }
+
+  void updateFilterSpeakerEnabled(bool enabled) {
+    filterNotifier.value = filterNotifier.value.copyWith(filterBySpeakerEnabled: enabled);
     _saveFilter();
     refreshPlaylist();
   }
@@ -232,10 +264,13 @@ class PageManager {
 
   void _saveFilter() {
     SharedPreferences.getInstance().then((sharedPreferences) {
-      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterStartYear, filterNotifier.value.start.year);
-      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterStartMonth, filterNotifier.value.start.month);
-      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterEndYear, filterNotifier.value.end.year);
-      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterEndMonth, filterNotifier.value.end.month);
+      sharedPreferences.setBool(SharedPreferencesKeys.playerFilterStartYear, filterNotifier.value.dateFilter.enabled);
+      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterStartYear, filterNotifier.value.dateFilter.start.year);
+      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterStartMonth, filterNotifier.value.dateFilter.start.month);
+      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterEndYear, filterNotifier.value.dateFilter.end.year);
+      sharedPreferences.setInt(SharedPreferencesKeys.playerFilterEndMonth, filterNotifier.value.dateFilter.end.month);
+      sharedPreferences.setString(SharedPreferencesKeys.playerFilterSpeaker, filterNotifier.value.filterBySpeaker);
+      sharedPreferences.setBool(SharedPreferencesKeys.playerFilterSpeakerEnabled, filterNotifier.value.filterBySpeakerEnabled);
     });
     getIt<AnalyticsService>().logFilterChange(filterNotifier.value);
   }
@@ -276,20 +311,24 @@ Future<InitialPlayerData> getInitialPlayerData() async {
   final talkId = sharedPreferences.getInt(SharedPreferencesKeys.playerTalkId);
   final playerShuffled = sharedPreferences.getBool(SharedPreferencesKeys.playerShuffled);
   final positionInSeconds = sharedPreferences.getInt(SharedPreferencesKeys.playerPositionInSeconds);
+  final filterDateEnabled = sharedPreferences.getBool(SharedPreferencesKeys.playerFilterDateEnabled);
   final filterStartYear = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterStartYear);
   final filterStartMonth = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterStartMonth);
   final filterEndYear = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterEndYear);
   final filterEndMonth = sharedPreferences.getInt(SharedPreferencesKeys.playerFilterEndMonth);
+  final filterSpeaker = sharedPreferences.getString(SharedPreferencesKeys.playerFilterSpeaker);
+  final filterSpeakerEnabled = sharedPreferences.getBool(SharedPreferencesKeys.playerFilterSpeakerEnabled);
   final lang = sharedPreferences.getString(SharedPreferencesKeys.playerFilterLang) ?? "eng";
-  Filter? filter;
+  DateFilter? dateFilter;
   if (filterStartYear != null && filterStartMonth != null && filterEndYear != null && filterEndMonth != null) {
-    filter = Filter(
+    dateFilter = DateFilter(
+      enabled: filterDateEnabled ?? true,
       YearMonth(filterStartYear, filterStartMonth),
       YearMonth(filterEndYear, filterEndMonth),
     );
   }
   return InitialPlayerData(
-    filter: filter,
+    filter: dateFilter == null ? null : Filter(dateFilter: dateFilter, filterBySpeaker: filterSpeaker ?? "", filterBySpeakerEnabled: filterSpeakerEnabled ?? !isBlank(filterSpeaker)),
     position: positionInSeconds == null ? null : Duration(seconds: positionInSeconds),
     talkId: talkId,
     shuffled: playerShuffled == true,

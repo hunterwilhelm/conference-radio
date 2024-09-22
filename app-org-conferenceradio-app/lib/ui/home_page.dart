@@ -32,6 +32,7 @@ class HomePage extends StatelessWidget {
     return Container(
       decoration: StyleList.backgroundGradient,
       child: const Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: Colors.transparent,
         body: Padding(
           padding: EdgeInsets.all(32.0),
@@ -96,7 +97,7 @@ class TopBar extends StatelessWidget {
                           ),
                         ),
                         TextSpan(
-                          text: '${filter.start.shortLabel} ${tr(context).toInContextOfDateToDate} ${filter.end.shortLabel}',
+                          text: '${filter.dateFilter.start.shortLabel} ${tr(context).toInContextOfFromDateToDate} ${filter.dateFilter.end.shortLabel}',
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 14,
@@ -185,11 +186,60 @@ class TopBar extends StatelessWidget {
   }
 }
 
-class AlbumCover extends StatelessWidget {
+class AlbumCover extends HookWidget {
   const AlbumCover({super.key});
   @override
   Widget build(BuildContext context) {
     final pageManager = getIt<PageManager>();
+
+    final availableTalks = useListenable(pageManager.talkCountAvailableNotifier).value;
+    var albumCover = ValueListenableBuilder<Talk?>(
+      valueListenable: pageManager.currentTalkNotifier,
+      builder: (_, talk, __) {
+        if (talk == null) {
+          return const CircularProgressIndicator();
+        }
+        final monthAndYear = '${talk.month == 4 ? tr(context).aprilLong : tr(context).octoberLong}\n${talk.year}';
+        final session = (trSession(context, talk.type, "\n"));
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text(
+              monthAndYear,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 25.67,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 2.05,
+              ),
+            ),
+            Container(
+              width: 124,
+              height: 1,
+              decoration: const ShapeDecoration(
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(
+                    width: 1,
+                    strokeAlign: BorderSide.strokeAlignCenter,
+                  ),
+                ),
+              ),
+            ),
+            Text(
+              session,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 25.67,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 2.05,
+              ),
+            ),
+          ],
+        );
+      },
+    );
     return Padding(
       padding: const EdgeInsets.all(26.0),
       child: AspectRatio(
@@ -205,53 +255,20 @@ class AlbumCover extends StatelessWidget {
               ),
             ),
           ),
-          child: ValueListenableBuilder<Talk?>(
-            valueListenable: pageManager.currentTalkNotifier,
-            builder: (_, talk, __) {
-              if (talk == null) {
-                return const CircularProgressIndicator();
-              }
-              final monthAndYear = '${talk.month == 4 ? tr(context).aprilLong : tr(context).octoberLong}\n${talk.year}';
-              final session = (trSession(context, talk.type, "\n"));
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text(
-                    monthAndYear,
+          child: availableTalks > 0
+              ? albumCover
+              : const Center(
+                  child: Text(
+                    "⚠️ No talks available ⚠️\n\nTry changing your filters",
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 25.67,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 2.05,
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 0, 0, 0),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.15,
                     ),
                   ),
-                  Container(
-                    width: 124,
-                    height: 1,
-                    decoration: const ShapeDecoration(
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          width: 1,
-                          strokeAlign: BorderSide.strokeAlignCenter,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    session,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 25.67,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 2.05,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+                ),
         ),
       ),
     );
