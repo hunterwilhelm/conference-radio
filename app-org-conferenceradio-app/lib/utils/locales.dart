@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:conference_radio_flutter/l10n/app_localizations.dart';
 
 AppLocalizations tr(BuildContext context) {
   return AppLocalizations.of(context)!;

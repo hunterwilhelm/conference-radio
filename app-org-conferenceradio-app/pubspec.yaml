@@ -36,46 +36,46 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flutter_cache_manager: ^3.4.1
-  path_provider: ^2.1.4
-  http: ^1.2.2
-  shared_preferences: ^2.3.2
+  path_provider: ^2.1.5
+  http: ^1.5.0
+  shared_preferences: ^2.5.3
   csv: ^6.0.0
-  sqflite: ^2.3.3+1
-  flutter_hooks: ^0.20.5
-  provider: ^6.1.2
-  flutter_native_splash: ^2.4.1
-  fluentui_system_icons: ^1.1.257
+  sqflite: ^2.4.2
+  flutter_hooks: ^0.21.3+1
+  provider: ^6.1.5+1
+  flutter_native_splash: ^2.4.6
+  fluentui_system_icons: ^1.1.273
   audio_video_progress_bar: ^2.0.3
-  audio_service: ^0.18.15
-  just_audio: ^0.9.40
-  audio_session: ^0.1.21
-  get_it: ^8.0.0
-  go_router: ^14.2.7
-  flutter_svg: ^2.0.10+1
-  google_fonts: ^6.2.1
-  figma_squircle: ^0.5.3
+  audio_service: ^0.18.18
+  just_audio: ^0.10.5
+  audio_session: ^0.2.2
+  get_it: ^8.2.0
+  go_router: ^16.2.4
+  flutter_svg: ^2.2.1
+  google_fonts: ^6.3.2
+  figma_squircle: ^0.6.3
   auto_size_text: ^3.0.0
-  url_launcher: ^6.3.0
-  share_plus: ^10.0.2
-  collection: ^1.18.0
+  url_launcher: ^6.3.2
+  share_plus: ^12.0.0
+  collection: ^1.19.1
   quiver: ^3.2.2
   rxdart: ^0.28.0
-  intl: ^0.19.0
-  flutter_animate: ^4.5.0
+  intl: ^0.20.2
+  flutter_animate: ^4.5.2
   automatic_animated_list: ^1.1.0
   flutter_localizations:
     sdk: flutter
-  firebase_analytics: ^11.3.2
-  firebase_core: ^3.5.0
-  package_info_plus: ^8.0.2
+  firebase_analytics: ^12.0.3
+  firebase_core: ^4.2.0
+  package_info_plus: ^9.0.0
   # broken stuff
-  win32: ^5.5.3
+  win32: ^5.15.0
   fading_edge_scrollview: ^4.1.1
   flutter_typeahead: ^5.2.0
 
 
 dev_dependencies:
-  flutter_launcher_icons: ^0.14.0
+  flutter_launcher_icons: ^0.14.4
   flutter_test:
     sdk: flutter
 
@@ -84,7 +84,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

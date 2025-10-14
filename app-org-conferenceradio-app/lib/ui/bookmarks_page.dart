@@ -47,7 +47,11 @@ class _BookmarksList extends StatelessWidget {
 
     final theme = Theme.of(context);
     return Theme(
-      data: theme.copyWith(useMaterial3: theme.platform == TargetPlatform.android),
+      data: ThemeData.from(
+        colorScheme: theme.colorScheme,
+        textTheme: theme.textTheme,
+        useMaterial3: theme.platform == TargetPlatform.android,
+      ),
       child: AutomaticAnimatedList<Bookmark>(
         padding: const EdgeInsets.symmetric(horizontal: 27, vertical: 44),
         items: bookmarks,
@@ -113,7 +117,7 @@ class BookmarkSheet extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withValues(alpha: 0.5),
             spreadRadius: 5,
             blurRadius: 7,
             offset: const Offset(0, 3),

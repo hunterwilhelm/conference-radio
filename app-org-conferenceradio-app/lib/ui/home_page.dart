@@ -246,7 +246,7 @@ class AlbumCover extends HookWidget {
         aspectRatio: 1,
         child: Container(
           decoration: ShapeDecoration(
-            color: Colors.white.withOpacity(0.7300000190734863),
+            color: Colors.white.withValues(alpha: 0.7300000190734863),
             shape: SmoothRectangleBorder(
               side: const BorderSide(width: 1, color: Color(0x4C818181)),
               borderRadius: SmoothBorderRadius(
