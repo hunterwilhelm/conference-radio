@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "build-i10n": "flutter gen-l10n",
-    "build-ios-prod": "flutter clean && flutter build ipa --obfuscate --split-debug-info=./.split-debug-info && ./upload_ipa.sh \"./build/ios/ipa/Conference Radio.ipa\"",
-    "build-android-prod": "flutter build appbundle --obfuscate --split-debug-info=./.split-debug-info && npm run open-android-release-folder",
+    "build-i10n": "fvm flutter gen-l10n",
+    "build-ios-prod": "fvm flutter clean && fvm flutter build ipa --obfuscate --split-debug-info=./.split-debug-info && ./upload_ipa.sh \"./build/ios/ipa/Conference Radio.ipa\"",
+    "build-android-prod": "fvm flutter build appbundle --obfuscate --split-debug-info=./.split-debug-info && npm run open-android-release-folder",
     "open-android-release-folder": "open ./build/app/outputs/bundle/release/"
   }
 }
