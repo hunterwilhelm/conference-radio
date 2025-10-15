@@ -1,5 +1,19 @@
 # Welcome to Conference Radio
 
+## Resolving Deployment Issues
+
+Deployment target to at least xx.0: Change AppFrameworkInfo.plist and Podfile to match.
+
+Bad podfile.lock? Delete it and run `pod repo update` in the ios directory and then `pod install` in the ios directory.
+
+
+## Simulator and XCode stuff
+
+Delete old simulators: 
+1. XCode -> Window -> Devices and Simulators -> Delete all simulators.
+2. XCode -> Settings -> Components -> Other installed platforms -> Delete all platforms one by one.
+
+
 ### Todos Release 1
  - [x] feature: upgrade audio service to the `just_audio` package
  - [x] bug: to fix, reset the queue except for current talk when changing between shuffle and chronological 

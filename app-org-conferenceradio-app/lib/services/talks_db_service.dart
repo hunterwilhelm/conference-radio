@@ -64,12 +64,12 @@ AND (? OR (
 ORDER BY year ASC, month ASC, session_order ASC, talk_order ASC
 """, [
       lang,
-      ignoreDateFilter,
+      ignoreDateFilter ? 1 : 0,
       sortedDateFilter.end.year,
       sortedDateFilter.end.month,
       sortedDateFilter.start.year,
       sortedDateFilter.start.month,
-      ignoreSpeakerFilter,
+      ignoreSpeakerFilter ? 1 : 0,
       filter.filterBySpeaker,
     ]);
     return results.map((map) => Talk.fromMap(map)).toList();

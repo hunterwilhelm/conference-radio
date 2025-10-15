@@ -24,10 +24,6 @@ Future<MyAudioHandler> initAudioService() async {
 
 class PlaylistManager {
   final _player = AudioPlayer();
-  final _audioSource = ConcatenatingAudioSource(
-    children: [],
-    useLazyPreparation: false,
-  );
 
   /// This is used to make sure a new shuffle queue is made only when you hit the shuffle button again
   List<int> _shuffledIndexes = [];
@@ -77,17 +73,10 @@ class PlaylistManager {
   int get currentIndex => _currentIndex.value;
 
   PlaylistManager() {
-    _attachAudioSourceToPlayer();
+    print("[PlaylistManager] Constructor called, initializing...");
     _listenForCurrentSongIndexChanges();
-  }
-
-  Future<void> _attachAudioSourceToPlayer() async {
-    try {
-      await _player.setAudioSource(_audioSource);
-      _player.setLoopMode(LoopMode.off);
-    } catch (e) {
-      print("Error: $e");
-    }
+    _listenToPlayerStateChanges();
+    _player.setLoopMode(LoopMode.off);
   }
 
   void _listenForCurrentSongIndexChanges() {
@@ -105,6 +94,19 @@ class PlaylistManager {
     }));
   }
 
+  void _listenToPlayerStateChanges() {
+    _streamSubscriptions.add(_player.processingStateStream.listen((state) {
+      print("[PlaylistManager] Processing state changed: $state");
+    }));
+
+    _streamSubscriptions.add(_player.playbackEventStream.listen((event) {
+      print("[PlaylistManager] Playback event: currentIndex=${event.currentIndex}, state=${event.processingState}, buffered=${event.bufferedPosition}");
+    }, onError: (e, stackTrace) {
+      print("[PlaylistManager] ❌ Playback event error: $e");
+      print("[PlaylistManager] Stack trace: $stackTrace");
+    }));
+  }
+
   /// Used for loading the tracks. This will reset the current index and position.
   setQueue(
     List<MediaItem> mediaItems, {
@@ -112,15 +114,17 @@ class PlaylistManager {
     Duration? position,
     bool? shuffled,
   }) async {
+    print("[PlaylistManager] setQueue called with ${mediaItems.length} items, index: $index");
     _fullPlaylist.value = [...mediaItems];
-    _audioSource.clear();
     _currentIndex.value = index ?? 0;
     if (_shuffled) {
       _updateShuffleIndexes();
     } else if (shuffled == true) {
       setShuffled(true);
     }
+    print("[PlaylistManager] Calling _updatePlayer()");
     await _updatePlayer();
+    print("[PlaylistManager] _updatePlayer() completed");
     if (position != null) {
       // can't seek until buffered has started
       late StreamSubscription subscription;
@@ -153,7 +157,6 @@ class PlaylistManager {
     if (shuffled) {
       _updateShuffleIndexes();
       _currentIndex.value = 0;
-      _audioSource.clear();
     } else {
       _currentIndex.value = _shuffledIndexes[_currentIndex.value];
     }
@@ -184,53 +187,96 @@ class PlaylistManager {
   }
 
   Future<void> _updatePlayer({offset = 0, force = false}) async {
-    if (offset == 1) {
-      getIt<AnalyticsService>().logNext(_shuffled);
-    } else if (offset == -1) {
-      getIt<AnalyticsService>().logPrevious(_shuffled);
+    try {
+      print("[PlaylistManager] _updatePlayer called with offset: $offset, force: $force");
+      if (offset == 1) {
+        getIt<AnalyticsService>().logNext(_shuffled);
+      } else if (offset == -1) {
+        getIt<AnalyticsService>().logPrevious(_shuffled);
+      }
+      final newIndex = _getRelativeIndex(offset);
+      final oldIndex = _currentIndex.value;
+      _currentIndex.value = newIndex;
+
+      final newMediaItemCurrent = _fullPlaylist.value[_getFinalIndex(0)];
+      print("[PlaylistManager] Current track: ${newMediaItemCurrent.title}");
+      mediaItem.add(newMediaItemCurrent);
+
+      SharedPreferences.getInstance().then((sharedPreferences) {
+        final id = int.tryParse(newMediaItemCurrent.id);
+        if (id == null) return;
+        sharedPreferences.setInt(SharedPreferencesKeys.playerTalkId, id);
+      });
+
+      // Check if we need to update (but always update on first load or force)
+      final hasExistingSources = _player.sequence.isNotEmpty;
+      if (newIndex == oldIndex && hasExistingSources && !force) {
+        print("[PlaylistManager] Skipping update - same index and audio sources exist");
+        return;
+      }
+
+      final newMediaItemNext = _fullPlaylist.value[_getFinalIndex(1)];
+      final newMediaItemPrevious = _fullPlaylist.value[_getFinalIndex(-1)];
+
+      print("[PlaylistManager] Setting audio sources with 3 tracks");
+      print("[PlaylistManager] Current: ${newMediaItemCurrent.title}");
+      print("[PlaylistManager] Next: ${newMediaItemNext.title}");
+      print("[PlaylistManager] Previous: ${newMediaItemPrevious.title}");
+
+      try {
+        // Store current position if we're updating an existing source
+        final currentPosition = _player.position;
+        final wasPlaying = _player.playing;
+
+        // Use the new setAudioSources API (not deprecated)
+        final sources = [
+          _createAudioSource(newMediaItemCurrent),
+          _createAudioSource(newMediaItemNext),
+          _createAudioSource(newMediaItemPrevious),
+        ];
+
+        print("[PlaylistManager] Setting ${sources.length} audio sources on player...");
+        await _player
+            .setAudioSources(
+          sources,
+          initialIndex: 0,
+          initialPosition: currentPosition,
+          preload: false, // Don't preload for iOS compatibility
+        )
+            .timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            print("[PlaylistManager] ⚠️ TIMEOUT setting audio sources!");
+            throw TimeoutException("setAudioSources timed out");
+          },
+        );
+
+        print("[PlaylistManager] ✅ Audio sources set successfully, sequence length: ${_player.sequence.length}");
+
+        // Resume playing if it was playing before
+        if (wasPlaying && offset != 0) {
+          print("[PlaylistManager] Resuming playback");
+          await _player.play();
+        }
+      } catch (e, stackTrace) {
+        print("[PlaylistManager] ❌ Error setting audio sources: $e");
+        print("[PlaylistManager] Stack trace: $stackTrace");
+        rethrow;
+      }
+
+      print("[PlaylistManager] ✅ _updatePlayer completed successfully");
+    } catch (e, stackTrace) {
+      print("[PlaylistManager] ❌ Error updating player: $e");
+      print("[PlaylistManager] Stack trace: $stackTrace");
     }
-    final newIndex = _getRelativeIndex(offset);
-    final oldIndex = _currentIndex.value;
-    _currentIndex.value = newIndex;
-
-    final newMediaItemCurrent = _fullPlaylist.value[_getFinalIndex(0)];
-    mediaItem.add(newMediaItemCurrent);
-
-    SharedPreferences.getInstance().then((sharedPreferences) {
-      final id = int.tryParse(newMediaItemCurrent.id);
-      if (id == null) return;
-      sharedPreferences.setInt(SharedPreferencesKeys.playerTalkId, id);
-    });
-
-    if (newIndex == oldIndex && _audioSource.length != 0 && !force) return;
-
-    final newMediaItemNext = _fullPlaylist.value[_getFinalIndex(1)];
-    final newMediaItemPrevious = _fullPlaylist.value[_getFinalIndex(-1)];
-    if (_audioSource.length == 0) {
-      await _audioSource.add(_createAudioSource(newMediaItemCurrent));
-    }
-    if (offset == 0 && force == true && _audioSource.length == 3) {
-      await _audioSource.removeAt(2);
-      await _audioSource.removeAt(1);
-    }
-    if (offset == 1) {
-      _audioSource.removeAt(2);
-      _ignoreIndexChangedOnce = true;
-      _audioSource.removeAt(0);
-    } else if (offset == -1) {
-      _ignoreIndexChangedOnce = true;
-      await _audioSource.removeAt(1);
-      _ignoreIndexChangedOnce = true;
-      _audioSource.removeAt(0);
-    }
-
-    await _audioSource.add(_createAudioSource(newMediaItemNext));
-    await _audioSource.add(_createAudioSource(newMediaItemPrevious));
   }
 
   UriAudioSource _createAudioSource(MediaItem mediaItem) {
+    final url = mediaItem.extras!['url'] as String;
+    print("[PlaylistManager] Creating audio source for: $url");
+    print("[PlaylistManager] MediaItem: ${mediaItem.title} by ${mediaItem.artist}");
     return AudioSource.uri(
-      Uri.parse(mediaItem.extras!['url'] as String),
+      Uri.parse(url),
       tag: mediaItem,
     );
   }
@@ -350,7 +396,12 @@ class MyAudioHandler extends BaseAudioHandler {
   }
 
   @override
-  Future<void> play() => _playlistManager.player.play();
+  Future<void> play() {
+    print("[MyAudioHandler] play() called");
+    print("[MyAudioHandler] Player state: ${_playlistManager.player.processingState}");
+    print("[MyAudioHandler] Player playing: ${_playlistManager.player.playing}");
+    return _playlistManager.player.play();
+  }
 
   @override
   Future<void> pause() => _playlistManager.player.pause();

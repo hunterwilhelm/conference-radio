@@ -122,8 +122,11 @@ class PageManager {
   }
 
   void play() async {
+    print("[PageManager] play() called");
     final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration.speech());
+    print("[PageManager] Configuring audio session for music");
+    await session.configure(const AudioSessionConfiguration.music());
+    print("[PageManager] Audio session configured, calling _audioHandler.play()");
     _audioHandler.play();
   }
 
@@ -180,6 +183,10 @@ class PageManager {
       filter: filterNotifier.value,
       lang: langNotifier.value,
     );
+    print("[PageManager] Fetched ${talks.length} talks");
+    if (talks.isNotEmpty) {
+      print("[PageManager] First talk MP3 URL: ${talks.first.mp3}");
+    }
     final talkMediaItems = [
       for (final talk in talks)
         MediaItem(
@@ -192,12 +199,14 @@ class PageManager {
         ),
     ];
     final index = initialData == null ? null : talks.indexWhere((element) => element.talkId == initialData.talkId);
+    print("[PageManager] Calling setQueue with index: $index");
     await _audioHandler.setQueue(
       talkMediaItems,
       index: index == -1 ? null : index,
       position: initialData?.position,
       shuffled: initialData?.shuffled,
     );
+    print("[PageManager] setQueue completed");
     playlistNotifier.value = talks;
     if (initialData?.shuffled == true) {
       isShuffleModeEnabledNotifier.value = true;
