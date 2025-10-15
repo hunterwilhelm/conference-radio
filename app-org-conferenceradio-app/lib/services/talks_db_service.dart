@@ -116,10 +116,10 @@ SELECT COUNT(*) as count FROM bookmarks WHERE talk_id = ?
 SELECT MAX(year + (CAST(month as REAL) / 20)) as end, MIN(year + (CAST(month as REAL) / 20)) as start FROM talks WHERE lang = ?
 """;
     final results = await db.rawQuery(countQuery, [lang]);
-    final start = results[0]["start"] as double;
+    final start = results[0]["start"] as double? ?? DateTime.now().year + (DateTime.now().month / 20);
     final startYear = start.floor();
     final startMonth = ((start - startYear) * 20).toInt();
-    final end = results[0]["end"] as double;
+    final end = results[0]["end"] as double? ?? DateTime.now().year + (DateTime.now().month / 20);
     final endYear = end.floor();
     final endMonth = ((end - endYear) * 20).toInt();
     return DateFilter(YearMonth(startYear, startMonth), YearMonth(endYear, endMonth));

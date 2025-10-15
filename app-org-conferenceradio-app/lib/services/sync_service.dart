@@ -9,19 +9,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SyncService {
   Future<void> checkForUpdatesAndApply({required String lang}) async {
-    final localVersion = await readLocalAppDataVersion();
-    final remoteVersion = await readRemoteAppDataVersion();
+    try {
+      final localVersion = await readLocalAppDataVersion();
+      final remoteVersion = await readRemoteAppDataVersion();
 
-    if (remoteVersion != localVersion) {
-      await saveLocalVersion(remoteVersion);
-
-      const csvUrl = 'https://www.conferenceradio.app/app_data/all.csv.gz';
-      final conferenceRows = await fetchAndParseCsvGZipped(csvUrl);
-      final talksDbService = await TalksDbService.init();
-      await talksDbService.refreshDb(conferenceRows);
-    } else {
-      // Versions are the same, no need to refetch
-      print('CSV file is up to date.');
+      if (remoteVersion != localVersion) {
+        const csvUrl = 'https://www.conferenceradio.app/app_data/all.csv.gz';
+        final conferenceRows = await fetchAndParseCsvGZipped(csvUrl);
+        final talksDbService = await TalksDbService.init();
+        await talksDbService.refreshDb(conferenceRows);
+        await saveLocalVersion(remoteVersion);
+      } else {
+        // Versions are the same, no need to refetch
+        print('CSV file is up to date.');
+      }
+    } catch (e) {
+      print('Error checking for updates: $e');
     }
   }
 
