@@ -3,7 +3,7 @@ import 'package:conference_radio_flutter/ui/filter_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 
-_onCreate(Database db, int version) async {
+Future<void> _onCreate(Database db, int version) async {
   await db.execute("""CREATE TABLE `talks` (
     `id` INTEGER,
     `lang` TEXT,
