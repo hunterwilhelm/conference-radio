@@ -68,7 +68,13 @@ class PlaylistManager {
 
   /// The index of the previous item in play order
   int get previousIndex => _getFinalIndex(-1);
-  Stream<bool> get hasPreviousStream => _currentIndex.map((index) => index > 0);
+  // Enable "previous" when either: there is a previous track, or the
+  // current track has progressed (allowing a restart via previous action).
+  Stream<bool> get hasPreviousStream => Rx.combineLatest2(
+        _player.positionStream,
+        _currentIndex,
+        (Duration position, int index) => index > 0 || position.inMilliseconds > 0,
+      );
 
   int get currentIndex => _currentIndex.value;
 
@@ -80,18 +86,9 @@ class PlaylistManager {
   }
 
   void _listenForCurrentSongIndexChanges() {
-    _streamSubscriptions.add(_player.currentIndexStream.listen((index) {
-      if (index == null) return;
-      if (_ignoreIndexChangedOnce) {
-        _ignoreIndexChangedOnce = false;
-        return;
-      }
-      if (index == 1) {
-        _updatePlayer(offset: 1);
-      } else if (index == 2) {
-        _updatePlayer(offset: -1);
-      }
-    }));
+    // Since we're now rebuilding sources instead of using a concatenating source,
+    // we don't need to listen for index changes to trigger updates.
+    // Navigation is handled explicitly through seekToNext/seekToPrevious.
   }
 
   void _listenToPlayerStateChanges() {
@@ -139,15 +136,25 @@ class PlaylistManager {
 
   /// Use this instead of [player.seekToNext]
   Future<void> seekToNext() async {
+    print("[PlaylistManager] seekToNext called");
     if (_fullPlaylist.value.length == _currentIndex.value + 1) {
+      print("[PlaylistManager] Already at last track");
       return;
     }
-    _player.seek(Duration.zero, index: _playerIndex + 1);
+    // Update to the next track
+    await _updatePlayer(offset: 1);
   }
 
   /// Use this instead of [player.seekToPrevious]
   Future<void> seekToPrevious() async {
-    _player.seek(Duration.zero, index: _playerIndex + 2);
+    print("[PlaylistManager] seekToPrevious called");
+    if (_currentIndex.value == 0) {
+      print("[PlaylistManager] Already at first track, seeking to start");
+      await _player.seek(Duration.zero);
+      return;
+    }
+    // Update to the previous track
+    await _updatePlayer(offset: -1);
   }
 
   /// This will generate a new shuffle queue when [shuffled] is true and before it wasn't
@@ -189,6 +196,7 @@ class PlaylistManager {
   Future<void> _updatePlayer({offset = 0, force = false}) async {
     try {
       print("[PlaylistManager] _updatePlayer called with offset: $offset, force: $force");
+      print("[PlaylistManager] Current index before: ${_currentIndex.value}");
       if (offset == 1) {
         getIt<AnalyticsService>().logNext(_shuffled);
       } else if (offset == -1) {
@@ -197,6 +205,7 @@ class PlaylistManager {
       final newIndex = _getRelativeIndex(offset);
       final oldIndex = _currentIndex.value;
       _currentIndex.value = newIndex;
+      print("[PlaylistManager] Current index after: ${_currentIndex.value} (was $oldIndex)");
 
       final newMediaItemCurrent = _fullPlaylist.value[_getFinalIndex(0)];
       print("[PlaylistManager] Current track: ${newMediaItemCurrent.title}");
@@ -416,6 +425,7 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToNext() async {
+    print("[MyAudioHandler] skipToNext called");
     return _playlistManager.seekToNext();
   }
 
@@ -423,9 +433,12 @@ class MyAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToPrevious() async {
+    print("[MyAudioHandler] skipToPrevious called, position: ${_playlistManager.player.position.inSeconds}s, currentIndex: ${_playlistManager.currentIndex}");
     if (_playlistManager.player.position.inSeconds > 5 || _playlistManager.currentIndex == 0) {
+      print("[MyAudioHandler] Seeking to beginning of current track");
       return _playlistManager.player.seek(Duration.zero);
     } else {
+      print("[MyAudioHandler] Going to previous track");
       return _playlistManager.seekToPrevious();
     }
   }
