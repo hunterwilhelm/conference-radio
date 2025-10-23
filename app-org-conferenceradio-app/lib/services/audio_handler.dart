@@ -249,7 +249,7 @@ class PlaylistManager {
             .setAudioSources(
           sources,
           initialIndex: 0,
-          initialPosition: currentPosition,
+          initialPosition: offset == 0 ? currentPosition : Duration.zero,
           preload: false, // Don't preload for iOS compatibility
         )
             .timeout(
